@@ -147,7 +147,7 @@ Our template:
 
 
 ### Resource Repository
-** make instructions for resource repo here **
+
 <img width="700" alt="message 3 sent" src="https://github.com/user-attachments/assets/78680382-6878-430a-82f7-7616b2aba4e6" />
 
 
