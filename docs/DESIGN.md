@@ -148,7 +148,22 @@ Our template:
 
 ### Resource Repository
 ** make instructions for resource repo here **
+<img width="700" alt="message 3 sent" src="https://github.com/user-attachments/assets/78680382-6878-430a-82f7-7616b2aba4e6" />
 
+
+1. Here, the 'user' clicks the 'COMP426-SP25' tab under 'Resource Repository'.
+<br>
+
+<img width="700" alt="message 3 sent" src="https://github.com/user-attachments/assets/5ebc22dd-92d6-4eb4-8edf-4e72e498c794" />
+
+
+2. Here, the 'user' clicks the 'Add Resource' button and is met with a prompt to upload a new resource to the repository. After the 'user' is finished and hits the 'Add Resource', they are brought to the resource repository for the class they uploaded to.
+<br>
+
+<img width="700" alt="message 3 sent" src="https://github.com/user-attachments/assets/69bef646-433d-4d9f-b66f-edcb33024b98" />
+
+
+3. Here, the 'user' clicks on the 'Midterm 1 Study Guide' card, which will then bring them to this page, which has the full description if it was previously cut off, the files that the author uploaded, and a paginated comments section.
 
 ### Peer-to-Peer Tutoring
 
