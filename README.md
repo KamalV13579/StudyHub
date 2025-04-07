@@ -74,12 +74,11 @@ We desire an environment that coalesces learning, so what better way than to hos
 
 Our database structure:
 
+![comp426schema1](https://github.com/user-attachments/assets/99960707-61c7-4b7c-ae3f-258de5a799aa)
 
-![team-01-db-schema-top](https://github.com/user-attachments/assets/794b3a78-e506-484b-b15f-353aabcb5412)
+![comp426schema2](https://github.com/user-attachments/assets/414b5e49-8640-4cc8-8c62-afc4dd6eec7c)
 
-![team-01-db-schema-bot](https://github.com/user-attachments/assets/d03cfddf-b905-4976-8c5b-fe65a109aeec)
-
-
+![comp426schema3](https://github.com/user-attachments/assets/94c45976-b4b6-4f80-86ae-38cc7670ed29)
 
 ## 🎨 High-Fidelity Prototype
 
