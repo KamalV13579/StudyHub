@@ -9,7 +9,7 @@
 ![Tailwind](https://img.shields.io/badge/-Tailwind-05122A?style=flat&logo=tailwindcss)
 ![Supabase](https://img.shields.io/badge/-Supabase-05122A?style=flat&logo=supabase)
 
-![image](https://github.com/user-attachments/assets/64b8451d-b090-42ab-9336-116e95bf3ba9)
+![logo](https://github.com/user-attachments/assets/12149d22-8d53-482c-ba14-5935a623687c)
 
 ---
 
