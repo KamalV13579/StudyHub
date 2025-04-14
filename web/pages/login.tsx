@@ -1,30 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
 /**
  * This is the login page of the application, allowing users to log in.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
+ * Used a07 Alias for reference
  */
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
-import { BotMessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
 export default function LoginPage() {
-  // Create necessary hooks for clients and providers.
   const router = useRouter();
   const supabase = createSupabaseComponentClient();
-  // Create states for each field in the form.
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Handle the sign in request, alerting the user if there is
-  // an error. If the login is successful, the user must be
-  // redirected to the home page.
   const logIn = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email,

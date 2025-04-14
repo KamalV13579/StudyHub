@@ -1,11 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 /**
  * This is the signup page of the application, allowing users to register.
- *
- * @author Nickolas Bleykhman <bleykhn@unc.edu>
- * 
- * References:
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
+ * Used a07 Alias for reference
  */
 
 import { Button } from "@/components/ui/button";

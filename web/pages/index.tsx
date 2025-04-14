@@ -1,5 +1,6 @@
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
+import { getCourses } from "@/utils/supabase/queries/course";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowBigLeftDash } from "lucide-react";
 import { GetServerSidePropsContext } from "next";
@@ -7,32 +8,42 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 export default function Home() {
-  // Hook into used depdencies.
   const supabase = createSupabaseComponentClient();
   const router = useRouter();
+  const { data: courses, isLoading: coursesLoading } = useQuery({
+    queryKey: ["courses"],
+    queryFn: () => getCourses(supabase),
+  });
+
+  useEffect(() => {
+    if (courses && courses[0]) {
+      router.push(`/course/${courses[0].id}`);
+
+    }
+  }, [router, courses]);
+
+  if (coursesLoading) {
+    <div>
+      <p className="font-bold text-lg p-6">Loading...</p>
+    </div>;
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold">Welcome to the Home Page</h1>
-      <p className="mt-4 text-lg">You are logged in!</p>
-      <button
-        className="mt-8 px-4 py-2 bg-blue-500 text-white rounded"
-        onClick={async () => {
-          await supabase.auth.signOut();
-          router.push("/login");
-        }}
-      >
-        Sign Out
-      </button>
+    <div>
+      <p className="font-bold text-lg p-6">Welcome!</p>
+      <div className="flex flex-row gap-3 px-6 pt-4.5">
+        <ArrowBigLeftDash />
+        <p className="font-bold">
+          Join a course on the sidebar here.
+        </p>
+      </div>
     </div>
   );
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  // Create the supabase context that works specifically on the server and
-  // pass in the context.
   const supabase = createSupabaseServerClient(context);
 
-  // Attempt to load the user data
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   // If the user is not logged in, redirect them to the login page.
@@ -46,6 +57,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   return {
-    props: {},
+    props: {}
   };
 }
