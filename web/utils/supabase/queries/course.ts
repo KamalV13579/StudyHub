@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Course } from "../models/course";
+import { Course } from "@/utils/supabase/models/course";
 import { z } from "zod";
 
 // Retrieves the list of courses the current user has joined.

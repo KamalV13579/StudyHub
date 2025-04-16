@@ -31,7 +31,7 @@ export default function Home() {
   return (
     <div>
       <p className="font-bold text-lg p-6">Welcome!</p>
-      <div className="flex flex-row gap-3 px-6 pt-4.5">
+      <div className="flex flex-row gap-3 px-6 pt-15">
         <ArrowBigLeftDash />
         <p className="font-bold">
           Join a course on the sidebar here.

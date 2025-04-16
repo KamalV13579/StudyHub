@@ -73,7 +73,9 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       .catch((error) => {
         console.error("[handleJoinCourse] Failed to join course:", error);
         if (error?.message?.includes("Course not found")) {
-          toast.error(`Course not found: "${courseCode}". Please check the course code you provided.`);
+          toast.error(
+            `Course not found: "${courseCode}". Please check the course code you provided.`
+          );
         } else {
           toast.error("Error: Invalid course code. Please try again.");
         }
@@ -82,24 +84,24 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 
   return (
     <Sidebar className="h-screen border-r flex flex-col" {...props}>
-      <SidebarHeader className="flex items-center justify-center px-4 h-[90px]">
+      <SidebarHeader className="flex items-center justify-center h-[125px]">
         <img
           src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
           alt="Logo"
-          className="h-full w-full object-contain"
+          className="h-3/4 w-3/4 object-contain"
         />
       </SidebarHeader>
-
       <div className="px-4">
         <SidebarHeader className="flex flex-row justify-between items-center px-0 pt-1 pb-1 text-sm font-semibold text-muted-foreground uppercase">
           <span className="inline-flex items-center">Courses</span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setJoinDialogOpen(true)}
-            className="inline-flex items-center justify-center p-1 hover:bg-accent rounded"
+            className="rounded"
           >
             <Plus className="h-4 w-4" />
-          </button>
+          </Button>
         </SidebarHeader>
       </div>
 
@@ -163,11 +165,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button
-              onClick={handleJoinCourse}
-              disabled={!subject || !courseNumber}
-              className="w-full"
-            >
+            <Button onClick={handleJoinCourse} disabled={!subject || !courseNumber} className="w-full">
               Join Course
             </Button>
           </DialogFooter>

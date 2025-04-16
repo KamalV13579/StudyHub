@@ -39,7 +39,7 @@ export default function CourseHomePage() {
         <CourseLayout>
           <div>
             <h1>
-              Welcome to {course.course_code} - {course.course_name}
+              Welcome to {course.course_code} - {course.course_name} Resource Repository!
             </h1>
           </div>
         </CourseLayout>

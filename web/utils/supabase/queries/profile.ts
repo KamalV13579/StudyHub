@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Profile } from "../models/profile";
+import { Profile } from "@/utils/supabase/models/profile";
 import { z } from "zod";
 
 export const getProfile = async (

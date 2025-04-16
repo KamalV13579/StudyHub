@@ -43,7 +43,6 @@ export default function App({ Component, pageProps }: AppProps) {
     );
   }
 
-  // Show a loading state until the user is loaded (though redirect should have happened if missing)
   if (!user) {
     return <div>Loading application…</div>;
   }
@@ -56,7 +55,7 @@ export default function App({ Component, pageProps }: AppProps) {
         enableSystem
         disableTransitionOnChange
       >
-        <SidebarProvider style={{ "--sidebar-width": "240px" } as React.CSSProperties}>
+        <SidebarProvider style={{ "--sidebar-width": "170px" } as React.CSSProperties}>
           <AppSidebar user={user} />
           <SidebarInset>
             <Component {...pageProps} />

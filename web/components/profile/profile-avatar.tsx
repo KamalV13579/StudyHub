@@ -2,11 +2,16 @@
 /**
  * Abstraction wrapper around Shadcn's avatar component to handle the properties
  * of the profile avatar for this app.
- * Used a07 Alias for reference
+ *
+ * @author Ajay Gandecha <ajay@cs.unc.edu>
+ * @author Jade Keegan <jade@cs.unc.edu>
+ *
+ * @see https://ui.shadcn.com/docs/components/avatar
  */
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { BotMessageSquare } from "lucide-react";
 import { z } from "zod";
 import { Profile } from "@/utils/supabase/models/profile";
 
@@ -21,10 +26,7 @@ export default function ProfileAvatar({
     <Avatar {...props}>
       <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.handle} />
       <AvatarFallback>
-        <img
-          src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
-          alt="Logo"
-        />
+        <BotMessageSquare className="size-4" />
       </AvatarFallback>
     </Avatar>
   );

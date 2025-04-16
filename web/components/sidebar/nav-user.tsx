@@ -63,7 +63,7 @@ export function NavUser({ user }: NavUserProps) {
                 <span className="truncate font-medium">{profile?.name}</span>
                 <span className="truncate text-xs">@{profile?.handle}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
