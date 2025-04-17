@@ -1,19 +1,15 @@
-import React, { FC } from "react";
-import { CourseLayout } from "@/components/course/courseLayout";
+import React from "react";
+import { User } from "@supabase/supabase-js";
 
 interface StudyRoomLayoutProps {
   children: React.ReactNode;
+  user: User;
 }
 
-export const StudyRoomLayout: FC<StudyRoomLayoutProps> = ({ children }) => {
+export function StudyRoomLayout({ children }: StudyRoomLayoutProps){
   return (
-    <CourseLayout>
       <div className="study-room-layout">
         {children}
-        <p>
-          Testing
-        </p>
       </div>
-    </CourseLayout>
   );
 };

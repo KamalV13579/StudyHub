@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
+import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
@@ -16,7 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const excludedRoutes = ["/login", "/signup"];
   const [user, setUser] = useState<User | null>(null);
-  const supabase = createSupabaseComponentClient();
+  const supabase = useSupabase();
 
   useEffect(() => {
     async function fetchUser() {
@@ -24,7 +24,7 @@ export default function App({ Component, pageProps }: AppProps) {
       setUser(data.user);
     }
     fetchUser();
-  }, [supabase, router]);
+  }, [supabase]);
 
   // If the route is excluded, render the page without sidebars.
   if (excludedRoutes.includes(router.pathname)) {
@@ -36,7 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
           enableSystem
           disableTransitionOnChange
         >
-          <Component {...pageProps} />
+          <Component {...pageProps} user = {user} />
           <Toaster />
         </ThemeProvider>
       </QueryClientProvider>
@@ -57,10 +57,10 @@ export default function App({ Component, pageProps }: AppProps) {
       >
         <SidebarProvider style={{ "--sidebar-width": "170px" } as React.CSSProperties}>
           <AppSidebar user={user} />
-          <SidebarInset>
-            <Component {...pageProps} />
-            <Toaster />
-          </SidebarInset>
+            <SidebarInset>
+              <Component {...pageProps} user = {user} />
+              <Toaster />
+            </SidebarInset>
         </SidebarProvider>
       </ThemeProvider>
     </QueryClientProvider>

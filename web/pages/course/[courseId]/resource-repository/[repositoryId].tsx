@@ -1,25 +1,19 @@
 import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { getCourseInfo } from "@/utils/supabase/queries/course";
-import { useEffect, useState } from "react";
+import { useSupabase } from "@/lib/supabase";
+import { ResourceRepositoryLayout } from "@/components/resource-repository/resourceRepositoryLayout";
 import { User } from "@supabase/supabase-js";
 import { CourseLayout } from "@/components/course/courseLayout";
 
-export default function CourseHomePage() {
+type ResourceRepositoryHomePageProps = {
+  user: User;
+};
+
+export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryHomePageProps) {
   const router = useRouter();
   const { courseId } = router.query;
-  const supabase = createSupabaseComponentClient();
-
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    async function fetchUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    fetchUser();
-  }, [supabase, router]);
+  const supabase = useSupabase();
 
   const { data: course, isLoading, error } = useQuery({
     queryKey: ["course", courseId],
@@ -34,16 +28,14 @@ export default function CourseHomePage() {
   if (error || !course) return <div>Error loading course</div>;
 
   return (
-    <>
-      {user && (
-        <CourseLayout>
-          <div>
-            <h1>
-              Welcome to {course.course_code} - {course.course_name} Resource Repository!
-            </h1>
-          </div>
-        </CourseLayout>
-      )}
-    </>
+    <CourseLayout user = {user} course = {course} >
+      <ResourceRepositoryLayout user = {user}>
+        <div>
+          <h1>
+            Welcome to {course.course_code} - {course.course_name} Resource Repository!
+          </h1>
+        </div>
+      </ResourceRepositoryLayout>
+    </CourseLayout>
   );
 }

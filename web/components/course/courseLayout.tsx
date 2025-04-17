@@ -1,17 +1,18 @@
 import { ReactNode } from "react";
-import { useRouter } from "next/router";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { User } from "@supabase/supabase-js";
+import { Course } from "@/utils/supabase/models/course";
 
 interface CourseLayoutProps {
   children: ReactNode;
+  user: User;
+  course: Course;
 }
 
-export function CourseLayout({ children }: CourseLayoutProps) {
-  const router = useRouter();
-  const { courseId } = router.query;
+export function CourseLayout({ children, user, course }: CourseLayoutProps) {
 
-  if (!courseId || typeof courseId !== "string") {
+  if (!course.id || typeof course.id !== "string") {
     return <div>Loading course...</div>;
   }
 
@@ -20,7 +21,7 @@ export function CourseLayout({ children }: CourseLayoutProps) {
       {/* Shift content to the right by the width of the global AppSidebar */}
       <div className="flex h-screen">
         <div className="flex-shrink-0 w-[240px] border-r">
-          <CourseSidebar courseId={courseId} />
+          <CourseSidebar course={course} user={user} />
         </div>
 
         {/* Main Content */}

@@ -1,31 +1,24 @@
 import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { getCourseInfo } from "@/utils/supabase/queries/course";
-import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { CourseLayout } from "@/components/course/courseLayout";
 import { getStudyRoom } from "@/utils/supabase/queries/studyroom";
+import { StudyRoomLayout } from "@/components/studyroom/studyRoomLayout";
+import { useSupabase } from "@/lib/supabase";
+import { CourseLayout } from "@/components/course/courseLayout";
 
-export default function CourseHomePage() {
+type StudyRoomPageProps = {
+  user: User;
+};
+
+export default function StudyRoomPage({ user }: StudyRoomPageProps) {
   const router = useRouter();
   const { courseId } = router.query;
-  const supabase = createSupabaseComponentClient();
-
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    async function fetchUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    fetchUser();
-  }, [supabase, router]);
+  const supabase = useSupabase();
 
   const { data: course, error } = useQuery({
     queryKey: ["course", courseId],
     queryFn: () => {
-      console.log("courseId", courseId);
       if (!courseId) return Promise.resolve(null);
       return getCourseInfo(supabase, courseId as string);
     },
@@ -35,7 +28,6 @@ export default function CourseHomePage() {
   const { data: studyRoom, isLoading: studyRoomLoading } = useQuery({
     queryKey: ["study_room", router.query.roomId],
     queryFn: async () => {
-      console.log("roomId", router.query.roomId);
       if (!router.query.roomId) return null;
       return getStudyRoom(supabase, router.query.roomId as string);
     },
@@ -48,12 +40,14 @@ export default function CourseHomePage() {
   return (
     <>
       {user && (
-        <CourseLayout>
-          <div>
-            <h1>
-              Welcome to {studyRoom?.title}!
-            </h1>
-          </div>
+        <CourseLayout user = {user} course = {course} >
+          <StudyRoomLayout user = {user} >
+            <div>
+              <h1>
+                Welcome to {studyRoom?.title}!
+              </h1>
+            </div>
+          </StudyRoomLayout>
         </CourseLayout>
       )}
     </>

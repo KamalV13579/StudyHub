@@ -26,6 +26,7 @@ export default function ProfileAvatar({
     <Avatar {...props}>
       <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.handle} />
       <AvatarFallback>
+        {/* CHANGE TO SOMETHING ELSE AS NEEDED */}
         <BotMessageSquare className="size-4" />
       </AvatarFallback>
     </Avatar>

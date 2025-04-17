@@ -26,20 +26,24 @@ import {
   deleteCourse,
   toggleInstructorStatus,
   getCourseMembership,
+  getCourses,
 } from "@/utils/supabase/queries/course";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
+import router from "next/router";
+import { User } from "@supabase/supabase-js";
+import { useSupabase } from "@/lib/supabase";
 
 type CourseOptionsProps = {
   hovering?: boolean;
   course: z.infer<typeof Course>;
+  user: User;
 };
 
-export default function CourseOptions({ hovering, course }: CourseOptionsProps) {
-  const supabase = createSupabaseComponentClient();
+export default function CourseOptions({ hovering, course, user }: CourseOptionsProps) {
   const queryUtils = useQueryClient();
+  const supabase = useSupabase();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
@@ -48,7 +52,7 @@ export default function CourseOptions({ hovering, course }: CourseOptionsProps) 
 
   const { data: membership, refetch: refetchMembership } = useQuery({
     queryKey: ["courseMembership", course.id],
-    queryFn: () => getCourseMembership(supabase, course.id),
+    queryFn: () => getCourseMembership(supabase, course.id, user.id),
     // enable only if course.id available
     enabled: !!course.id,
   });
@@ -63,7 +67,7 @@ export default function CourseOptions({ hovering, course }: CourseOptionsProps) 
     e.stopPropagation();
 
     try {
-      await toggleInstructorStatus(supabase, course.id);
+      await toggleInstructorStatus(supabase, course.id, user.id);
       setIsInstructor((prev) => !prev);
       toast.success("Instructor status updated.");
       queryUtils.refetchQueries({ queryKey: ["courses"] });
@@ -74,6 +78,18 @@ export default function CourseOptions({ hovering, course }: CourseOptionsProps) 
       toast.error(`Error toggling instructor status: ${errorMessage}`);
     }
   };
+
+  const handleDeleteCourse = async () => {
+    await deleteCourse(supabase, course.id, user.id);
+    toast("Course deleted.");
+    queryUtils.refetchQueries({ queryKey: ["courses"] });
+    const courses = await getCourses(supabase, user.id);
+    if (!courses || courses.length === 0) {
+      router.push(`/`)
+    } else {
+      router.push(`/course/${courses[0].id}`);
+    }
+  }
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -137,11 +153,7 @@ export default function CourseOptions({ hovering, course }: CourseOptionsProps) 
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={async () => {
-                  await deleteCourse(supabase, course.id);
-                  toast("Course deleted.");
-                  queryUtils.refetchQueries({ queryKey: ["courses"] });
-                }}
+                onClick={handleDeleteCourse}
               >
                 Delete
               </AlertDialogAction>

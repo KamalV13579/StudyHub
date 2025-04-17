@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCourseInfo } from "@/utils/supabase/queries/course";
 import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
 import { createStudyRoom, joinStudyRoom } from "@/utils/supabase/queries/studyroom";
 import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { ChevronRight, DoorOpen, Plus } from "lucide-react";
 import {
   Sidebar,
@@ -35,59 +33,117 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import router from "next/router";
-import StudyRoomSidebarItem from "@/components/course/sidebar-item";
+import { useRouter } from "next/router";
+import StudyRoomSidebarItem from "@/components/studyroom/studyroom-item";
+import { User } from "@supabase/supabase-js";
+import { useSupabase } from "@/lib/supabase";
+import { Course } from "@/utils/supabase/models/course";
+import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 
-interface CourseSidebarProps {
-  courseId: string;
+type CourseSidebarProps = {
+  course: Course;
+  user: User;
 }
 
-export function CourseSidebar({ courseId }: CourseSidebarProps) {
-  const supabase = createSupabaseComponentClient();
+export function CourseSidebar({ course, user }: CourseSidebarProps) {
   const queryClient = useQueryClient();
+  const supabase = useSupabase();
+  const router = useRouter();
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [joinStudyRoomDialogOpen, setJoinStudyRoomDialogOpen] = useState(false);
   const [newStudyRoomDialogOpen, setNewStudyRoomDialogOpen] = useState(false);
   const [joinStudyRoomText, setJoinStudyRoomText] = useState("");
   const [newStudyRoomText, setNewStudyRoomText] = useState("");
+  
+  const handleCreateStudyRoom = async () => {
+    try {
+      const studyroom = await createStudyRoom(
+        supabase,
+        newStudyRoomText,
+        course.id,
+        user.id
+      );
+      toast("Study room created.");
+      queryClient.refetchQueries({
+        queryKey: ["studyrooms", course.id],
+      });
+      setNewStudyRoomDialogOpen(false);
+      setDropdownOpen(false);
+      router.push(`/course/${course.id}/studyroom/${studyroom.id}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Error creating study room: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred while creating study room.");
+      }
+    }
+  }
 
-  // Fetch course info.
-  const { data: course, isLoading, error: courseError } = useQuery({
-    queryKey: ["courseInfo", courseId],
-    queryFn: async () => await getCourseInfo(supabase, courseId),
-  });
+  const handleJoinStudyRoom = async () => {
+    try {
+      const joinedStudyRoom = await joinStudyRoom(supabase, joinStudyRoomText, course.id, user.id);
+      if (joinedStudyRoom.alreadyJoined) {
+        toast("You are already a member of this study room.");
+      } else {
+        toast.success("Study room joined successfully.");
+      }
+      queryClient.invalidateQueries({ queryKey: ["studyrooms", course.id] });
+      setJoinStudyRoomDialogOpen(false);
+      router.push(`/course/${course.id}/studyroom/${joinedStudyRoom.id}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Error joining study room: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred while joining study room.");
+      }
+    }
+  }
 
-  // Fetch resource repository info (assumed to be one per course).
-  const { data: resourceRepository } = useQuery({
-    queryKey: ["resourceRepository", courseId],
-    queryFn: async () => {
-      if (!courseId) return null;
-      return getResourceRepository(supabase, courseId);
-    },
-    enabled: !!courseId,
-  });
-
-  // Fetch study rooms for the current user in this course.
   const {
     data: studyRooms,
     isLoading: studyRoomsLoading,
     error: studyRoomsError,
   } = useQuery({
-    queryKey: ["studyrooms", courseId],
-    queryFn: async () => {
-      if (!courseId) return [];
-      return getStudyRooms(supabase, courseId as string);
-    },
-    enabled: !!courseId,
+      queryKey: ["courseSidebar", course.id, "studyRooms"],
+      queryFn: () => getStudyRooms(supabase, course.id, user.id),
+      enabled: !!course.id,
   });
 
-  if (isLoading) {
-    return <div className="ml-[170px] p-4">Loading...</div>;
-  }
-  if (courseError || !course) {
-    return <div className="ml-[170px] p-4">Error loading course data</div>;
-  }
+  const handleOpenResourceRepository = async () => {
+    let repo = queryClient.getQueryData<{ id: string }>([
+      "courseSidebar",
+      course.id,
+      "resourceRepo",
+    ]);
+    if (!repo) {
+      repo = await queryClient.fetchQuery({
+      queryKey: ["courseSidebar", course.id, "resourceRepo"],
+      queryFn:   () => getResourceRepository(supabase, course.id),
+      staleTime: 5 * 60_000
+      });
+    }
+    if (repo?.id) {
+      router.push(`/course/${course.id}/resource-repository/${repo.id}`);
+    } else {
+      toast.error("Resource repository not found");
+    }
+  };
+
+  const { data: forumRepository } = useQuery({
+    queryKey: ["forumRepository", course.id],
+    queryFn:   () => getForumRepository(supabase, course.id),
+    enabled:   !!course.id,
+  });
+
+  const handleForumRepositoryOpen = () => {
+    console.log("Forum repository:", forumRepository);
+    if (forumRepository?.id) {
+      router.push(`/course/${course.id}/forum-repository/${forumRepository.id}`);
+    } else {
+      toast.error("Forum repository not found");
+    }
+  };
 
   return (
     <Sidebar className="h-screen border-r ml-[170px]">
@@ -148,25 +204,7 @@ export function CourseSidebar({ courseId }: CourseSidebarProps) {
                         <DialogFooter>
                           <Button
                             disabled={joinStudyRoomText.trim().length === 0}
-                            onClick={async () => {
-                              try {
-                                const joinedStudyRoom = await joinStudyRoom(supabase, joinStudyRoomText, courseId);
-                                if (joinedStudyRoom.alreadyJoined) {
-                                  toast("You are already a member of this study room.");
-                                } else {
-                                  toast.success("Study room joined successfully.");
-                                }
-                                queryClient.invalidateQueries({ queryKey: ["studyrooms", courseId] });
-                                setJoinStudyRoomDialogOpen(false);
-                                router.push(`/course/${courseId}/studyroom/${joinedStudyRoom.id}`);
-                              } catch (error: unknown) {
-                                if (error instanceof Error) {
-                                  toast.error(`Error joining study room: ${error.message}`);
-                                } else {
-                                  toast.error("An unknown error occurred while joining study room.");
-                                }
-                              }
-                            }}
+                            onClick={handleJoinStudyRoom}
                           >
                             Join
                           </Button>
@@ -210,20 +248,7 @@ export function CourseSidebar({ courseId }: CourseSidebarProps) {
                           <Button
                             disabled={newStudyRoomText.length < 1}
                             type="submit"
-                            onClick={async () => {
-                              const studyroom = await createStudyRoom(
-                                supabase,
-                                newStudyRoomText,
-                                courseId
-                              );
-                              toast("Study room created.");
-                              queryClient.refetchQueries({
-                                queryKey: ["studyrooms", courseId],
-                              });
-                              setNewStudyRoomDialogOpen(false);
-                              setDropdownOpen(false);
-                              router.push(`/course/${courseId}/studyroom/${studyroom.id}`);
-                            }}
+                            onClick={handleCreateStudyRoom}
                           >
                             Create
                           </Button>
@@ -245,7 +270,8 @@ export function CourseSidebar({ courseId }: CourseSidebarProps) {
                     key={room.id}
                     studyRoom={room}
                     selectedStudyRoomId={router.query.studyroomId as string}
-                    courseId={courseId}
+                    courseId={course.id}
+                    user={user}
                   />
                 ))
               ) : (
@@ -263,18 +289,7 @@ export function CourseSidebar({ courseId }: CourseSidebarProps) {
                 variant="ghost"
                 size="sm"
                 className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
-                onClick={() => {
-                  console.log("Resource Repository clicked");
-                  console.log(resourceRepository);
-                  console.log(resourceRepository?.id);
-                  if (resourceRepository && resourceRepository.id) {
-                    router.push(
-                      `/course/${courseId}/resource-repository/${resourceRepository.id}`
-                    );
-                  } else {
-                    toast.error("Resource Repository not found");
-                  }
-                }}
+                onClick={handleOpenResourceRepository}
               >
                 <span>Resource Repository</span>
                 <ChevronRight className="h-4 w-4" />
@@ -285,14 +300,13 @@ export function CourseSidebar({ courseId }: CourseSidebarProps) {
           <Separator />
 
           {/* Forums Section */}
-          {/* !!!!!!!!!!!!!!!!!!!!!TO BE IMPLEMENTED!!!!!!!!!!!!!!!!!!!!! */}
           <SidebarGroup>
             <SidebarHeader className="px-0 pt-1 pb-1">
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
-                onClick={() => router.push(`/course/${courseId}/forums`)}
+                onClick={() => handleForumRepositoryOpen()}
               >
                 <span>Forums</span>
                 <ChevronRight className="h-4 w-4" />
