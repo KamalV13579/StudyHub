@@ -1,8 +1,7 @@
-import { TypeOf, z } from "zod";
+import { z } from "zod";
 import { DraftMessage, Message } from "../models/message";
 import { InfiniteData , Query, QueryClient } from "@tanstack/react-query";
 import { Profile } from "../models/profile";
-import { pages } from "next/dist/build/templates/app-page";
 
 export const addMessageToCacheFn = 
     (
@@ -25,7 +24,7 @@ export const addMessageToCacheFn =
                     ? [Message.parse({ author: user, ...newMessage}), ...page] 
                     : page
                     ),
-                };
+                }
             }
         );
     };

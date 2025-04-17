@@ -50,16 +50,16 @@ export const sendMessage = async (
     const { data: message, error } = await supabase
         .from("study_room_message")
         .insert(draftMessage)
-        .select(
-            `
-                id,
-                content,
-                created_at,
-                attachment_url,
-                author_id,
-                study_room_id
-            `
-        )
+        .select(`
+            id,
+            study_room:study!study_room_id ( id, course_id, title ),
+            author:profile!author_id ( id, name, handle, avatar_url, major, created_at ),
+            content,
+            created_at,
+            attachment_url,
+            author_id,
+            study_room_id
+        `)
         .single();
 
     if (error) { 
@@ -76,28 +76,27 @@ export const sendMessage = async (
         if (fileData) {
             const { data: updatedMessage, error } = await supabase
                 .from("study_room_message")
-                .update({
-                    attachment_url: supabase.storage
-                        .from("attachments")
-                        .getPublicUrl(fileData.path).data.publicUrl,
-                })
+                .update({ attachment_url: supabase.storage
+                    .from("attachments")
+                    .getPublicUrl(fileData.path).data.publicUrl,
+                 })
                 .eq("id", message.id)
-                .select(
-                    `
-                        id, 
-                        content,
-                        created_at,
-                        attachment_url,
-                        author_id,
-                        study_room_id,
-                    `
-                )
+                .select(`
+                    id,
+                    study_room:study!study_room_id ( id, course_id, title ),
+                    author:profile!author_id ( id, name, handle, avatar_url, major, created_at ),
+                    content,
+                    created_at,
+                    attachment_url,
+                    author_id,
+                    study_room_id
+                `)
                 .single();
-            if (error) throw Error(error.message);
-
-            return DraftMessage.parse(message);
+                
+            return Message.parse(updatedMessage);
         }
+        
+        return Message.parse(message);
     }
-    return DraftMessage.parse(message);
 };
 
