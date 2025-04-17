@@ -31,27 +31,3 @@ export default function ProfileAvatar({
     </Avatar>
   );
 }
-
-
-// import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-// import { CircleUserRound } from "lucide-react";
-// import type { Profile } from "@/utils/supabase/models/profile";
-
-// type Props = {
-//   profile?: Profile;
-// } & React.ComponentProps<typeof Avatar>;
-
-// export default function ProfileAvatar({ profile, className, ...props }: Props) {
-//   const src = profile?.avatar_url;
-//   return (
-//     <Avatar {...props} className={className}>
-//       {src ? (
-//         <AvatarImage src={src} alt={profile!.handle} />
-//       ) : (
-//         <AvatarFallback>
-//           <CircleUserRound className="w-6 h-6" />
-//         </AvatarFallback>
-//       )}
-//     </Avatar>
-//   );
-// }

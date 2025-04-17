@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { Plus } from "lucide-react";
 import {
   Sidebar,

@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 /**
  * This is the signup page of the application, allowing users to register.
  * Used a07 Alias for reference
