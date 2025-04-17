@@ -5,23 +5,26 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import { useState } from "react";
 import CourseOptions from "./course-options";
+import { User } from "@supabase/supabase-js";
 
-type CourseSidebarItemProps = {
+type SidebarItemProps = {
   course: z.infer<typeof Course>;
   selectedCourseId?: string;
+  user: User;
 };
 
 export default function CourseSidebarItem({
   course,
   selectedCourseId,
-}: CourseSidebarItemProps) {
+  user,
+}: SidebarItemProps) {
   const router = useRouter();
   const [isHovering, setIsHovering] = useState<boolean>(false);
 
   return (
     <div
       className={cn(
-        "flex flex-row items-center hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:rounded-lg gap-2 px-2 text-base leading-tight whitespace-nowrap text-muted-foreground",
+        "flex flex-row items-center hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:rounded-lg gap-2 px-2 text-base leading-tight whitespace-nowrap text-muted-foreground cursor-pointer",
         course.id === selectedCourseId || isHovering
           ? "bg-sidebar-accent text-sidebar-accent-foreground rounded-lg"
           : ""
@@ -35,6 +38,7 @@ export default function CourseSidebarItem({
         <CourseOptions
           course={course}
           hovering={isHovering}
+          user={user}
         />
       </div>
     </div>

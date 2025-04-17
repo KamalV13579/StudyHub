@@ -7,3 +7,5 @@ export const Profile = z.object({
   avatar_url: z.string().nullable(),
   major: z.string(),
 });
+
+export type Profile = z.infer<typeof Profile>;

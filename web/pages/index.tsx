@@ -1,18 +1,23 @@
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
 import { getCourses } from "@/utils/supabase/queries/course";
+import { User } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowBigLeftDash } from "lucide-react";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-export default function Home() {
+type HomeProps = {
+  user: User;
+}
+
+export default function Home({ user }: HomeProps) {
   const supabase = createSupabaseComponentClient();
   const router = useRouter();
   const { data: courses, isLoading: coursesLoading } = useQuery({
     queryKey: ["courses"],
-    queryFn: () => getCourses(supabase),
+    queryFn: () => getCourses(supabase, user.id),
   });
 
   useEffect(() => {
@@ -31,7 +36,7 @@ export default function Home() {
   return (
     <div>
       <p className="font-bold text-lg p-6">Welcome!</p>
-      <div className="flex flex-row gap-3 px-6 pt-4.5">
+      <div className="flex flex-row gap-3 px-6 pt-15">
         <ArrowBigLeftDash />
         <p className="font-bold">
           Join a course on the sidebar here.
@@ -57,6 +62,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   return {
-    props: {}
+    props: {},
   };
 }

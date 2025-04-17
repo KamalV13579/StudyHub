@@ -40,7 +40,7 @@ export default function LoginPage() {
                 href="#"
                 className="flex flex-col items-center gap-2 font-medium"
               >
-                <div className="flex w-60 items-center justify-center rounded-md">
+                <div className="flex w-40 items-center justify-center rounded-md">
                   <img
                     src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
                     alt="Logo"

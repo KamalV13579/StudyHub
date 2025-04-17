@@ -2,11 +2,16 @@
 /**
  * Abstraction wrapper around Shadcn's avatar component to handle the properties
  * of the profile avatar for this app.
- * Used a07 Alias for reference
+ *
+ * @author Ajay Gandecha <ajay@cs.unc.edu>
+ * @author Jade Keegan <jade@cs.unc.edu>
+ *
+ * @see https://ui.shadcn.com/docs/components/avatar
  */
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { UserRound } from "lucide-react";
 import { z } from "zod";
 import { Profile } from "@/utils/supabase/models/profile";
 
@@ -21,11 +26,32 @@ export default function ProfileAvatar({
     <Avatar {...props}>
       <AvatarImage src={profile?.avatar_url ?? ""} alt={profile?.handle} />
       <AvatarFallback>
-        <img
-          src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
-          alt="Logo"
-        />
+        <UserRound className="w-6 h-6" />
       </AvatarFallback>
     </Avatar>
   );
 }
+
+
+// import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+// import { CircleUserRound } from "lucide-react";
+// import type { Profile } from "@/utils/supabase/models/profile";
+
+// type Props = {
+//   profile?: Profile;
+// } & React.ComponentProps<typeof Avatar>;
+
+// export default function ProfileAvatar({ profile, className, ...props }: Props) {
+//   const src = profile?.avatar_url;
+//   return (
+//     <Avatar {...props} className={className}>
+//       {src ? (
+//         <AvatarImage src={src} alt={profile!.handle} />
+//       ) : (
+//         <AvatarFallback>
+//           <CircleUserRound className="w-6 h-6" />
+//         </AvatarFallback>
+//       )}
+//     </Avatar>
+//   );
+// }

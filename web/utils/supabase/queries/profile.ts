@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Profile } from "../models/profile";
+import { Profile } from "@/utils/supabase/models/profile";
 import { z } from "zod";
 
 export const getProfile = async (
@@ -20,18 +20,13 @@ export const getProfile = async (
 
 export const changeProfileDisplayName = async (
   supabase: SupabaseClient,
-  newName: string
+  newName: string,
+  userId: string
 ): Promise<void> => {
-  // Get the current authenticated user.
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
   const { error: updateError } = await supabase
     .from("profile")
     .update({ name: newName })
-    .eq("id", userData.user.id)
+    .eq("id", userId)
     .single();
 
   if (updateError) {
@@ -41,12 +36,9 @@ export const changeProfileDisplayName = async (
 
 export const changeProfileImage = async (
   supabase: SupabaseClient,
-  file: File
+  file: File,
+  userId: string
 ): Promise<void> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !userData) throw Error("Error loading current user.");
-
   const { data: fileData, error: uploadError } = await supabase.storage
     .from("avatars")
     .update(`${file.name}`, file, { upsert: true });
@@ -63,7 +55,7 @@ export const changeProfileImage = async (
         },
       }).data.publicUrl,
     })
-    .eq("id", userData.user.id);
+    .eq("id", userId);
 
   if (updateError) {
     throw new Error(`Error updating profile image: ${updateError.message}`);

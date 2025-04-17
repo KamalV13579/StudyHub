@@ -1,27 +1,32 @@
 import { useRouter } from "next/router";
-import { GetServerSidePropsContext } from "next";
 import { useQuery } from "@tanstack/react-query";
+import { GetServerSidePropsContext } from "next";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
 import { useSupabase } from "@/lib/supabase";
 
 import { getCourseInfo } from "@/utils/supabase/queries/course";
-import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
+import {
+  getStudyRooms,
+  getStudyRoom,
+} from "@/utils/supabase/queries/studyroom";
 import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 
 import { CourseLayout } from "@/components/course/courseLayout";
+import { StudyRoomLayout } from "@/components/studyroom/studyRoomLayout";
 import type { User } from "@supabase/supabase-js";
 
-type PageProps = {
+type StudyRoomPageProps = {
   user: User;
 };
 
-export default function CourseHomePage({ user }: PageProps) {
+export default function StudyRoomPage({ user }: StudyRoomPageProps) {
   const router = useRouter();
   const courseId = router.query.courseId as string;
+  const roomId = router.query.roomId as string;
   const supabase = useSupabase();
 
-  const { data: course, isLoading: loadingCourse } = useQuery({
+  const { data: course } = useQuery({
     queryKey: ["course", courseId],
     queryFn: () => getCourseInfo(supabase, courseId),
     enabled: !!courseId,
@@ -45,9 +50,13 @@ export default function CourseHomePage({ user }: PageProps) {
     enabled: !!courseId,
   });
 
-  if (loadingCourse || !course) {
-    return <div>Loading...</div>;
-  }
+  const { data: studyRoom } = useQuery({
+    queryKey: ["studyRoom", roomId],
+    queryFn: async () => getStudyRoom(supabase, roomId),
+    enabled: !!roomId,
+  });
+
+  if (!course) return <div>Loading course info...</div>;
 
   return (
     <CourseLayout
@@ -57,9 +66,9 @@ export default function CourseHomePage({ user }: PageProps) {
       resourceRepository={resourceRepository!}
       forumRepository={forumRepository!}
     >
-      <h1>
-        Welcome to {course.course_code} – {course.course_name}
-      </h1>
+      <StudyRoomLayout >
+        <h1>Welcome to {studyRoom?.title}!</h1>
+      </StudyRoomLayout>
     </CourseLayout>
   );
 }

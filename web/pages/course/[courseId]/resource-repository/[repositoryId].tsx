@@ -1,27 +1,26 @@
 import { useRouter } from "next/router";
-import { GetServerSidePropsContext } from "next";
 import { useQuery } from "@tanstack/react-query";
-import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
-import { useSupabase } from "@/lib/supabase";
-
 import { getCourseInfo } from "@/utils/supabase/queries/course";
+import { useSupabase } from "@/lib/supabase";
+import { ResourceRepositoryLayout } from "@/components/resource-repository/resourceRepositoryLayout";
+import { User } from "@supabase/supabase-js";
+import { CourseLayout } from "@/components/course/courseLayout";
 import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
 import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
+import { GetServerSidePropsContext } from "next";
+import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
 
-import { CourseLayout } from "@/components/course/courseLayout";
-import type { User } from "@supabase/supabase-js";
-
-type PageProps = {
+type ResourceRepositoryHomePageProps = {
   user: User;
 };
 
-export default function CourseHomePage({ user }: PageProps) {
+export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryHomePageProps) {
   const router = useRouter();
   const courseId = router.query.courseId as string;
   const supabase = useSupabase();
 
-  const { data: course, isLoading: loadingCourse } = useQuery({
+  const { data: course } = useQuery({
     queryKey: ["course", courseId],
     queryFn: () => getCourseInfo(supabase, courseId),
     enabled: !!courseId,
@@ -44,10 +43,9 @@ export default function CourseHomePage({ user }: PageProps) {
     queryFn: () => getForumRepository(supabase, courseId),
     enabled: !!courseId,
   });
-
-  if (loadingCourse || !course) {
-    return <div>Loading...</div>;
-  }
+  
+  if (!course) return <div>Loading course info...</div>;
+  if (!resourceRepository) return <div>Loading resource repository...</div>;
 
   return (
     <CourseLayout
@@ -57,9 +55,9 @@ export default function CourseHomePage({ user }: PageProps) {
       resourceRepository={resourceRepository!}
       forumRepository={forumRepository!}
     >
-      <h1>
-        Welcome to {course.course_code} – {course.course_name}
-      </h1>
+      <ResourceRepositoryLayout>
+        <h1>Welcome to {course.course_code} - {course.course_name} Resource Repository: {resourceRepository.id}!</h1>
+      </ResourceRepositoryLayout>
     </CourseLayout>
   );
 }

@@ -11,10 +11,8 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { getCourses, joinCourse } from "@/utils/supabase/queries/course";
 import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
-import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -31,17 +29,19 @@ import { Label } from "@/components/ui/label";
 import AppSidebarItem from "@/components/sidebar/app-sidebar-item";
 import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/sidebar/nav-user";
+import { User } from "@supabase/supabase-js";
+import { useSupabase } from "@/lib/supabase";
 
 type AppSidebarProps = { user: User } & React.ComponentProps<typeof Sidebar>;
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  const supabase = createSupabaseComponentClient();
   const queryUtils = useQueryClient();
   const router = useRouter();
+  const supabase = useSupabase();
 
   const { data: courses } = useQuery({
-    queryKey: ["courses"],
-    queryFn: () => getCourses(supabase),
+    queryKey: ["courses", user.id],
+    queryFn: () => getCourses(supabase, user.id),
   });
 
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
@@ -49,57 +49,54 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const [courseNumber, setCourseNumber] = useState("");
   const [isInstructor, setIsInstructor] = useState(false);
 
-  const handleJoinCourse = () => {
-    const courseCode = `${subject.toUpperCase().trim()} ${courseNumber.trim()}`;
-    console.log("[handleJoinCourse] Concatenated courseCode:", courseCode);
-    console.log("[handleJoinCourse] Is Instructor?", isInstructor);
+  const handleJoinCourse = async () => {
+    const courseCode = `${subject.toUpperCase().trim()} ${courseNumber.trim()}`
+    try {
+      const result = await joinCourse(supabase, courseCode, isInstructor, user.id)
 
-    joinCourse(supabase, courseCode, isInstructor)
-      .then((course) => {
-        console.log("[handleJoinCourse] Joined course object:", course);
-        if (course.alreadyJoined) {
-          toast("Course already joined.");
-        } else {
-          toast.success("Course joined.");
-        }
-        broadcastUserChange(supabase);
-        queryUtils.refetchQueries({ queryKey: ["courses"] });
-        setJoinDialogOpen(false);
+      if (result.alreadyJoined) {
+        toast("Course already joined.")
+      } else {
+        toast.success("Course joined.")
+      }
 
-        if (!courses || courses.length === 0) {
-          router.push(`/course/${course.id}`);
-        }
-      })
-      .catch((error) => {
-        console.error("[handleJoinCourse] Failed to join course:", error);
-        if (error?.message?.includes("Course not found")) {
-          toast.error(`Course not found: "${courseCode}". Please check the course code you provided.`);
-        } else {
-          toast.error("Error: Invalid course code. Please try again.");
-        }
-      });
-  };
+      broadcastUserChange(supabase)
+      queryUtils.refetchQueries({ queryKey: ["courses"] })
+      setJoinDialogOpen(false)
+
+      // If this was the first course, redirect into it
+      if (!courses || courses.length === 0) {
+        router.push(`/course/${result.id}`)
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(`Error joining course: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred while joining course.");
+      }
+    }
+  }
 
   return (
     <Sidebar className="h-screen border-r flex flex-col" {...props}>
-      <SidebarHeader className="flex items-center justify-center px-4 h-[90px]">
+      <SidebarHeader className="flex items-center justify-center h-[125px]">
         <img
           src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
           alt="Logo"
-          className="h-full w-full object-contain"
+          className="h-3/4 w-3/4 object-contain"
         />
       </SidebarHeader>
-
       <div className="px-4">
         <SidebarHeader className="flex flex-row justify-between items-center px-0 pt-1 pb-1 text-sm font-semibold text-muted-foreground uppercase">
           <span className="inline-flex items-center">Courses</span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setJoinDialogOpen(true)}
-            className="inline-flex items-center justify-center p-1 hover:bg-accent rounded"
+            className="rounded"
           >
             <Plus className="h-4 w-4" />
-          </button>
+          </Button>
         </SidebarHeader>
       </div>
 
@@ -112,6 +109,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                   key={course.id}
                   course={course}
                   selectedCourseId={router.query.courseId as string}
+                  user={user}
                 />
               ))}
             </SidebarGroupContent>
@@ -163,11 +161,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button
-              onClick={handleJoinCourse}
-              disabled={!subject || !courseNumber}
-              className="w-full"
-            >
+            <Button onClick={handleJoinCourse} disabled={!subject || !courseNumber} className="w-full">
               Join Course
             </Button>
           </DialogFooter>
