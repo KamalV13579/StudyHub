@@ -53,7 +53,6 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
   const { data: membership, refetch: refetchMembership } = useQuery({
     queryKey: ["courseMembership", course.id],
     queryFn: () => getCourseMembership(supabase, course.id, user.id),
-    // enable only if course.id available
     enabled: !!course.id,
   });
 
@@ -103,7 +102,7 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
       </DropdownMenuTrigger>
 
       <DropdownMenuContent>
-        {/* Toggle Instructor using a Switch within a container that stops propagation */}
+        {/* Toggle Instructor */}
         <DropdownMenuItem asChild>
           <div
             onClick={(e) => e.stopPropagation()}
@@ -152,11 +151,12 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
               >
                 Cancel
               </AlertDialogCancel>
-              <AlertDialogAction
+              <Button
                 onClick={handleDeleteCourse}
+                variant="destructive"
               >
                 Delete
-              </AlertDialogAction>
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

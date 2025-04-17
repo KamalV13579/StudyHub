@@ -24,9 +24,8 @@ export default function App({ Component, pageProps }: AppProps) {
       setUser(data.user);
     }
     fetchUser();
-  }, [supabase]);
+  }, [supabase, router]);
 
-  // If the route is excluded, render the page without sidebars.
   if (excludedRoutes.includes(router.pathname)) {
     return (
       <QueryClientProvider client={queryClient}>

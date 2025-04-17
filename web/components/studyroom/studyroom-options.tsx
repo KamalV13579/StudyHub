@@ -64,8 +64,8 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
       toast.success("Study room name updated.");
       setEditDialogOpen(false);
       setDropdownOpen(false);
-      queryClient.refetchQueries({ queryKey: ["studyrooms", studyRoom.course_id] });
-      queryClient.refetchQueries({ queryKey: ["study_room", studyRoom.id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRoom", studyRoom.id] });
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -81,7 +81,7 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
     try {
       await deleteStudyRoom(supabase, studyRoom.id);
       toast.success("Study room deleted.");
-      queryClient.refetchQueries({ queryKey: ["studyrooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
       const studyRooms = await getStudyRooms(supabase, studyRoom.course_id, user.id);
       if (studyRooms.length === 0) {
         router.push(`/course/${studyRoom.course_id}`);
@@ -103,7 +103,7 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
     try {
       await leaveStudyRoom(supabase, studyRoom.id, user.id);
       toast.success("Left study room.");
-      queryClient.refetchQueries({ queryKey: ["studyrooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);

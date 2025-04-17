@@ -1,9 +1,7 @@
 import React from "react";
-import { User } from "@supabase/supabase-js";
 
-interface ResourceRepositoryLayoutProps {
+type ResourceRepositoryLayoutProps = {
   children: React.ReactNode;
-  user: User;
 }
 
 export function ResourceRepositoryLayout({ children }: ResourceRepositoryLayoutProps){

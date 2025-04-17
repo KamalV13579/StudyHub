@@ -28,7 +28,7 @@ export default function StudyRoomSidebarItem({
   const [isHovering, setIsHovering] = useState(false);
   const supabase = useSupabase();
 
-  // Use a React Query to fetch membership info for the current study room and user.
+  // fetch membership info for the current study room and user.
   const { data: membership } = useQuery({
     queryKey: ["studyRoomMembership", studyRoom.id, user.id],
     queryFn: async () => {
@@ -45,10 +45,9 @@ export default function StudyRoomSidebarItem({
     enabled: !!user,
   });
 
-  // Determine if the current user is the owner.
+  // Determine if current user is the owner.
   const isOwner = !!(membership && membership.is_owner);
 
-  // Get the current study room id from the route (ensure your route param is named correctly).
   const { roomId: currentStudyRoomId } = router.query as { roomId?: string };
 
   return (
@@ -74,7 +73,7 @@ export default function StudyRoomSidebarItem({
       <div className="ml-auto">
         <StudyRoomOptions
           studyRoom={studyRoom}
-          hovering={isHovering || currentStudyRoomId === studyRoom.id}
+          hovering={currentStudyRoomId === studyRoom.id}
           isOwner={isOwner}
           user={user}
         />

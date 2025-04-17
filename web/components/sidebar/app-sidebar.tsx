@@ -40,7 +40,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const supabase = useSupabase();
 
   const { data: courses } = useQuery({
-    queryKey: ["courses"],
+    queryKey: ["courses", user.id],
     queryFn: () => getCourses(supabase, user.id),
   });
 

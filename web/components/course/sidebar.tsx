@@ -1,8 +1,6 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
+import { useQueryClient } from "@tanstack/react-query";
 import { createStudyRoom, joinStudyRoom } from "@/utils/supabase/queries/studyroom";
-import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 import { ChevronRight, DoorOpen, Plus } from "lucide-react";
 import {
   Sidebar,
@@ -38,14 +36,19 @@ import StudyRoomSidebarItem from "@/components/studyroom/studyroom-item";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
 import { Course } from "@/utils/supabase/models/course";
-import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
+import { StudyRoom } from "@/utils/supabase/models/studyroom";
+import { ResourceRepository } from "@/utils/supabase/models/resource-repository";
+import { ForumRepository } from "@/utils/supabase/models/forum-repository";
 
 type CourseSidebarProps = {
   course: Course;
   user: User;
+  studyRooms: StudyRoom[];
+  resourceRepository: ResourceRepository;
+  forumRepository: ForumRepository;
 }
 
-export function CourseSidebar({ course, user }: CourseSidebarProps) {
+export function CourseSidebar({ course, user, studyRooms, resourceRepository, forumRepository }: CourseSidebarProps) {
   const queryClient = useQueryClient();
   const supabase = useSupabase();
   const router = useRouter();
@@ -66,7 +69,7 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
       );
       toast("Study room created.");
       queryClient.refetchQueries({
-        queryKey: ["studyrooms", course.id],
+        queryKey: ["studyRooms", course.id],
       });
       setNewStudyRoomDialogOpen(false);
       setDropdownOpen(false);
@@ -88,7 +91,7 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
       } else {
         toast.success("Study room joined successfully.");
       }
-      queryClient.invalidateQueries({ queryKey: ["studyrooms", course.id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", course.id] });
       setJoinStudyRoomDialogOpen(false);
       router.push(`/course/${course.id}/studyroom/${joinedStudyRoom.id}`);
     } catch (error: unknown) {
@@ -100,44 +103,15 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
     }
   }
 
-  const {
-    data: studyRooms,
-    isLoading: studyRoomsLoading,
-    error: studyRoomsError,
-  } = useQuery({
-      queryKey: ["courseSidebar", course.id, "studyRooms"],
-      queryFn: () => getStudyRooms(supabase, course.id, user.id),
-      enabled: !!course.id,
-  });
-
   const handleOpenResourceRepository = async () => {
-    let repo = queryClient.getQueryData<{ id: string }>([
-      "courseSidebar",
-      course.id,
-      "resourceRepo",
-    ]);
-    if (!repo) {
-      repo = await queryClient.fetchQuery({
-      queryKey: ["courseSidebar", course.id, "resourceRepo"],
-      queryFn:   () => getResourceRepository(supabase, course.id),
-      staleTime: 5 * 60_000
-      });
-    }
-    if (repo?.id) {
-      router.push(`/course/${course.id}/resource-repository/${repo.id}`);
+    if (resourceRepository?.id) {
+      router.push(`/course/${course.id}/resource-repository/${resourceRepository.id}`);
     } else {
       toast.error("Resource repository not found");
     }
   };
 
-  const { data: forumRepository } = useQuery({
-    queryKey: ["forumRepository", course.id],
-    queryFn:   () => getForumRepository(supabase, course.id),
-    enabled:   !!course.id,
-  });
-
-  const handleForumRepositoryOpen = () => {
-    console.log("Forum repository:", forumRepository);
+  const handleOpenForumRepository = () => {
     if (forumRepository?.id) {
       router.push(`/course/${course.id}/forum-repository/${forumRepository.id}`);
     } else {
@@ -260,23 +234,19 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
               </div>
             </SidebarHeader>
             <SidebarGroupContent className="px-2 py-1 list-none space-y-1">
-              {studyRoomsLoading ? (
-                <div>Loading study rooms...</div>
-              ) : studyRoomsError ? (
-                <div>Error loading study rooms</div>
-              ) : studyRooms && studyRooms.length > 0 ? (
+                {studyRooms && studyRooms.length > 0 ? (
                 studyRooms.map((room) => (
                   <StudyRoomSidebarItem
-                    key={room.id}
-                    studyRoom={room}
-                    selectedStudyRoomId={router.query.studyroomId as string}
-                    courseId={course.id}
-                    user={user}
+                  key={room.id}
+                  studyRoom={room}
+                  selectedStudyRoomId={router.query.studyroomId as string}
+                  courseId={course.id}
+                  user={user}
                   />
                 ))
-              ) : (
+                ) : (
                 <div>No study rooms joined yet.</div>
-              )}
+                )}
             </SidebarGroupContent>
           </SidebarGroup>
 
@@ -306,7 +276,7 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
                 variant="ghost"
                 size="sm"
                 className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
-                onClick={() => handleForumRepositoryOpen()}
+                onClick={() => handleOpenForumRepository()}
               >
                 <span>Forums</span>
                 <ChevronRight className="h-4 w-4" />
@@ -316,9 +286,9 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
 
           <Separator />
 
-          {/* Tutoring Section */}
+          {/* Tutoring Section
           {/* !!!!!!!!!!!!!!!!!!!!!TO BE IMPLEMENTED!!!!!!!!!!!!!!!!!!!!! */}
-          <SidebarGroup>
+          {/* <SidebarGroup>
             <SidebarHeader className="px-0 pt-1 pb-1">
               <div
                 className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
@@ -340,11 +310,11 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          <Separator />
+          <Separator /> */}
 
           {/* Tutoring Requests Section */}
           {/* !!!!!!!!!!!!!!!!!!!!!TO BE IMPLEMENTED!!!!!!!!!!!!!!!!!!!!! */}
-          <SidebarGroup>
+          {/* <SidebarGroup>
             <SidebarHeader className="px-0 pt-1 pb-1">
               <Button
                 variant="ghost"
@@ -357,7 +327,7 @@ export function CourseSidebar({ course, user }: CourseSidebarProps) {
             <SidebarGroupContent className="px-2 py-1 list-none space-y-1">
               <p className="cursor-default">No requests (placeholder)</p>
             </SidebarGroupContent>
-          </SidebarGroup>
+          </SidebarGroup> */}
         </SidebarContent>
       </ScrollArea>
     </Sidebar>

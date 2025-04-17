@@ -1,9 +1,7 @@
 import React from "react";
-import { User } from "@supabase/supabase-js";
 
-interface ForumRepositoryLayoutProps {
+type ForumRepositoryLayoutProps = {
   children: React.ReactNode;
-  user: User;
 }
 
 export function ForumRepositoryLayout({ children }: ForumRepositoryLayoutProps){
