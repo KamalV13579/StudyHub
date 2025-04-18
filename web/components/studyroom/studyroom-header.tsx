@@ -48,7 +48,9 @@ export default function StudyRoomHeader({
           <div className="flex flex-row w-[240px] items-center justify-between h-full border-r p-3">
             <div className="flex flex-row items-center h-full gap-2">
               <UsersRound className="size-5 text-muted-foreground" />
-              <p className="font-bold">{selectedStudyRoom?.title ?? ""}</p>
+              <p className="font-bold truncate w-[70px]">
+                {selectedStudyRoom?.title ?? ""}
+              </p>
             </div>
             <ChevronDown className="size-4" />
           </div>
