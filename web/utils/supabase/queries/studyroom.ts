@@ -209,24 +209,6 @@ export const updateStudyRoomName = async (
   }
 };
 
-export const leaveStudyRoom = async (
-  supabase: SupabaseClient,
-  studyRoomId: string
-): Promise<void> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData) throw Error("Error loading current user.");
-
-  const { error: membershipError } = await supabase
-    .from("study_room_membership")
-    .delete()
-    .eq("study_room_id", studyRoomId)
-    .eq("profile_id", userData.user.id);
-
-  if (membershipError) {
-    throw new Error(`Error leaving studyroom: ${membershipError.message}`);
-  }
-};
-
 export const deleteStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string
