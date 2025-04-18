@@ -48,7 +48,19 @@ export function StudyRoomUserSidebar({
     <Sidebar
       side="right"
       collapsible="none"
-      className="min-w-[240px] max-w-[240px]"
+      className="
+    min-w-[15vw]      // Proportional minimum width
+    max-w-[240px]     // Maximum cap for large screens
+    lg:min-w-[200px]  // Larger fixed size at 1080p (lg breakpoint)
+    xl:min-w-[220px]  // Slightly larger at 1440p (xl breakpoint)
+    2xl:min-w-[240px] // Full size at very large resolutions
+    w-[20vw]          // Default proportional width
+    lg:w-[200px]      // Fixed width at 1080p
+    xl:w-[220px]      // Adjusted for 1440p
+    transition-all     // Smooth resizing
+    duration-200       // Transition timing
+    overflow-hidden    // Prevent content overflow
+  "
       {...props}
     >
       <ScrollArea className="h-[calc(100vh-56px)] min-w-[240px] max-w-[240px]">

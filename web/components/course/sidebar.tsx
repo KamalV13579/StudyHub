@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createStudyRoom, joinStudyRoom } from "@/utils/supabase/queries/studyroom";
+import {
+  createStudyRoom,
+  joinStudyRoom,
+} from "@/utils/supabase/queries/studyroom";
 import { ChevronRight, DoorOpen, Plus } from "lucide-react";
 import {
   Sidebar,
@@ -46,19 +49,25 @@ type CourseSidebarProps = {
   studyRooms: StudyRoom[];
   resourceRepository: ResourceRepository;
   forumRepository: ForumRepository;
-}
+};
 
-export function CourseSidebar({ course, user, studyRooms, resourceRepository, forumRepository }: CourseSidebarProps) {
+export function CourseSidebar({
+  course,
+  user,
+  studyRooms,
+  resourceRepository,
+  forumRepository,
+}: CourseSidebarProps) {
   const queryClient = useQueryClient();
   const supabase = useSupabase();
   const router = useRouter();
-  
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [joinStudyRoomDialogOpen, setJoinStudyRoomDialogOpen] = useState(false);
   const [newStudyRoomDialogOpen, setNewStudyRoomDialogOpen] = useState(false);
   const [joinStudyRoomText, setJoinStudyRoomText] = useState("");
   const [newStudyRoomText, setNewStudyRoomText] = useState("");
-  
+
   const handleCreateStudyRoom = async () => {
     try {
       const studyroom = await createStudyRoom(
@@ -81,11 +90,16 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
         toast.error("An unknown error occurred while creating study room.");
       }
     }
-  }
+  };
 
   const handleJoinStudyRoom = async () => {
     try {
-      const joinedStudyRoom = await joinStudyRoom(supabase, joinStudyRoomText, course.id, user.id);
+      const joinedStudyRoom = await joinStudyRoom(
+        supabase,
+        joinStudyRoomText,
+        course.id,
+        user.id
+      );
       if (joinedStudyRoom.alreadyJoined) {
         toast("You are already a member of this study room.");
       } else {
@@ -101,11 +115,13 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
         toast.error("An unknown error occurred while joining study room.");
       }
     }
-  }
+  };
 
   const handleOpenResourceRepository = async () => {
     if (resourceRepository?.id) {
-      router.push(`/course/${course.id}/resource-repository/${resourceRepository.id}`);
+      router.push(
+        `/course/${course.id}/resource-repository/${resourceRepository.id}`
+      );
     } else {
       toast.error("Resource repository not found");
     }
@@ -113,14 +129,31 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
 
   const handleOpenForumRepository = () => {
     if (forumRepository?.id) {
-      router.push(`/course/${course.id}/forum-repository/${forumRepository.id}`);
+      router.push(
+        `/course/${course.id}/forum-repository/${forumRepository.id}`
+      );
     } else {
       toast.error("Forum repository not found");
     }
   };
 
   return (
-    <Sidebar className="h-screen border-r ml-[170px]">
+    <Sidebar
+      className="h-screen border-r 
+    ml-[5vw] 
+    md:ml-[7vw]
+    lg:ml-[11vw]  
+    xl:ml-[11vw]
+    2xl:ml-[16vw]
+    max-ml-[300px] 
+    min-ml-[70px] 
+    transition-all 
+    duration-300 
+    ease-in-out
+    w-[11vw] 
+    flex-shrink-0 
+  "
+    >
       <ScrollArea className="h-full">
         <SidebarContent className="pb-4">
           {/* Course Information Section */}
@@ -136,7 +169,10 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
               <div className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase">
                 <span className="inline-flex items-center">Study Rooms</span>
                 {/* Dropdown for joining/creating study rooms */}
-                <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+                <DropdownMenu
+                  open={dropdownOpen}
+                  onOpenChange={setDropdownOpen}
+                >
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="p-1">
                       <Plus className="h-4 w-4" />
@@ -149,7 +185,10 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
                     sideOffset={4}
                   >
                     {/* Join Study Room Dialog */}
-                    <Dialog open={joinStudyRoomDialogOpen} onOpenChange={setJoinStudyRoomDialogOpen}>
+                    <Dialog
+                      open={joinStudyRoomDialogOpen}
+                      onOpenChange={setJoinStudyRoomDialogOpen}
+                    >
                       <DialogTrigger asChild>
                         <DropdownMenuItem
                           onClick={(e) => {
@@ -172,7 +211,9 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
                           <Input
                             placeholder="Enter study room ID..."
                             value={joinStudyRoomText}
-                            onChange={(e) => setJoinStudyRoomText(e.target.value)}
+                            onChange={(e) =>
+                              setJoinStudyRoomText(e.target.value)
+                            }
                           />
                         </div>
                         <DialogFooter>
@@ -189,7 +230,9 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
                     {/* Create Study Room Dialog */}
                     <Dialog
                       open={newStudyRoomDialogOpen}
-                      onOpenChange={(isOpen) => setNewStudyRoomDialogOpen(isOpen)}
+                      onOpenChange={(isOpen) =>
+                        setNewStudyRoomDialogOpen(isOpen)
+                      }
                     >
                       <DialogTrigger asChild>
                         <DropdownMenuItem
@@ -208,13 +251,18 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
                         </DialogHeader>
                         <div className="flex flex-col gap-3 py-3">
                           <div className="flex flex-col gap-2">
-                            <Label htmlFor="new-study-room" className="text-right">
+                            <Label
+                              htmlFor="new-study-room"
+                              className="text-right"
+                            >
                               Study Room Name
                             </Label>
                             <Input
                               id="new-study-room"
                               value={newStudyRoomText}
-                              onChange={(e) => setNewStudyRoomText(e.target.value)}
+                              onChange={(e) =>
+                                setNewStudyRoomText(e.target.value)
+                              }
                             />
                           </div>
                         </div>
@@ -234,19 +282,19 @@ export function CourseSidebar({ course, user, studyRooms, resourceRepository, fo
               </div>
             </SidebarHeader>
             <SidebarGroupContent className="px-2 py-1 list-none space-y-1">
-                {studyRooms && studyRooms.length > 0 ? (
+              {studyRooms && studyRooms.length > 0 ? (
                 studyRooms.map((room) => (
                   <StudyRoomSidebarItem
-                  key={room.id}
-                  studyRoom={room}
-                  selectedStudyRoomId={router.query.studyroomId as string}
-                  courseId={course.id}
-                  user={user}
+                    key={room.id}
+                    studyRoom={room}
+                    selectedStudyRoomId={router.query.studyroomId as string}
+                    courseId={course.id}
+                    user={user}
                   />
                 ))
-                ) : (
+              ) : (
                 <div>No study rooms joined yet.</div>
-                )}
+              )}
             </SidebarGroupContent>
           </SidebarGroup>
 
