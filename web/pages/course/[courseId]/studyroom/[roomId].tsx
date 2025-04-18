@@ -1,16 +1,22 @@
 import { useRouter } from "next/router";
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { GetServerSidePropsContext } from "next";
+import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { getCourseInfo } from "@/utils/supabase/queries/course";
-import { 
-  useCallback, 
+import {
+  useCallback,
   useEffect,
-  useState, 
+  useState,
   useMemo,
   useRef,
   Fragment,
- } from "react";
-import { X, ImageIcon, SmilePlus, Upload } from "lucide-react";
+} from "react";
+import { X, ImageIcon, Upload } from "lucide-react";
 import { InView } from "react-intersection-observer";
 import MessageView from "@/components/studyroom/message-view";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
@@ -21,19 +27,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { User } from "@supabase/supabase-js";
 import { CourseLayout } from "@/components/course/courseLayout";
-import { getStudyRoom, getStudyRoomMembers } from "@/utils/supabase/queries/studyroom";
 import {
-  DraftMessage,
-} from "@/utils/supabase/models/message";
-import { 
-  getPaginatedMessages, 
+  getStudyRoom,
+  getStudyRoomMembers,
+} from "@/utils/supabase/queries/studyroom";
+import { DraftMessage } from "@/utils/supabase/models/message";
+import {
+  getPaginatedMessages,
   sendMessage,
 } from "@/utils/supabase/queries/message";
 import { useDebounce } from "use-debounce";
-import { 
+import {
   addMessageToCacheFn,
   updateMessageInCacheFn,
-  deleteMessageFromCacheFn
+  deleteMessageFromCacheFn,
 } from "@/utils/supabase/cache/message-cache";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
@@ -41,7 +48,7 @@ import { toast } from "sonner";
 
 export default function CourseHomePage() {
   const router = useRouter();
-  const { courseId, studyRoomId } = router.query;
+  const { courseId, roomId: studyRoomId } = router.query;
   const supabase = createSupabaseComponentClient();
 
   const [user, setUser] = useState<User | null>(null);
@@ -56,7 +63,6 @@ export default function CourseHomePage() {
     fetchUser();
   }, [supabase, router]);
 
-
   // Fetches the currently selected course
   const { data: course, error } = useQuery({
     queryKey: ["course", courseId],
@@ -70,24 +76,24 @@ export default function CourseHomePage() {
 
   // Fetches the study rooms for current course
   const { data: studyRoom, isLoading: studyRoomLoading } = useQuery({
-    queryKey: ["study_room", router.query.roomId],
+    queryKey: ["study_room", studyRoomId],
     queryFn: async () => {
-      console.log("roomId", router.query.roomId);
-      if (!router.query.roomId) return null;
-      return getStudyRoom(supabase, router.query.roomId as string);
+      console.log("roomId", studyRoomId);
+      if (!studyRoomId) return null;
+      return getStudyRoom(supabase, studyRoomId as string);
     },
     enabled: !!courseId,
   });
 
   // Fetches messages for currently selected study room
   const { data: messages, fetchNextPage: fetchNext } = useInfiniteQuery({
-    queryKey: ["messages", router.query.roomId],
+    queryKey: ["messages", studyRoomId],
     queryFn: async ({ pageParam = 0 }) => {
       return await getPaginatedMessages(
         supabase,
-        router.query.roomId as string,
+        studyRoomId as string,
         pageParam
-      )
+      );
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => pages.length * lastPage.length,
@@ -102,7 +108,7 @@ export default function CourseHomePage() {
   const isFilterActive = debouncedFilterQuery.length > 0;
 
   // Fetch the filtered messsages for the currently selected study room
-  const { data: filteredMessages, fetchNextPage: filteredFetchNext } = 
+  const { data: filteredMessages, fetchNextPage: filteredFetchNext } =
     useInfiniteQuery({
       queryKey: ["filteredMessages", studyRoomId],
       queryFn: async ({ pageParam = 0 }) => {
@@ -121,24 +127,34 @@ export default function CourseHomePage() {
   // Fetches all the members in a study room
   const { data: members } = useQuery({
     queryKey: ["members", courseId],
-    queryFn: async () => { 
+    queryFn: async () => {
       return await getStudyRoomMembers(supabase, studyRoomId as string);
     },
-    enabled: !!courseId
+    enabled: !!courseId,
   });
 
   // The following functions contribute to optimistic updating
 
   const addMessageToCache = useCallback(
-    (newMessage: z.infer<typeof DraftMessage>) => 
-      addMessageToCacheFn(queryUtils, studyRoomId, members)(newMessage),
-    [studyRoomId, members, queryUtils]
-  )
+    (newMessage: z.infer<typeof DraftMessage>) =>
+      addMessageToCacheFn(
+        queryUtils,
+        studyRoomId,
+        members,
+        supabase
+      )(newMessage),
+    [studyRoomId, members, queryUtils, supabase]
+  );
 
   const updateMessageInCache = useCallback(
-    (updatedMessage: z.infer<typeof DraftMessage>) => 
-      updateMessageInCacheFn(queryUtils, studyRoomId, members)(updatedMessage),
-    [studyRoomId, members, queryUtils]
+    (updatedMessage: z.infer<typeof DraftMessage>) =>
+      updateMessageInCacheFn(
+        queryUtils,
+        studyRoomId,
+        members,
+        supabase
+      )(updatedMessage),
+    [studyRoomId, members, queryUtils, supabase]
   );
 
   const deleteMessageFromCache = useCallback(
@@ -149,8 +165,8 @@ export default function CourseHomePage() {
 
   // Realtime for messages
 
-  useEffect(() => { 
-    if(!studyRoomId) return;
+  useEffect(() => {
+    if (!studyRoomId) return;
 
     const messageSubscription = supabase
       .channel("messages")
@@ -160,19 +176,19 @@ export default function CourseHomePage() {
           event: "INSERT",
           schema: "public",
           table: "study_room_message",
-          filter: `study_room_id.eq.${studyRoomId}`
+          filter: `study_room_id.eq.${studyRoomId}`,
         },
-        (payload) => { 
-          const newMessage = { 
+        (payload) => {
+          const newMessage = {
             id: payload.new.id,
             content: payload.new.content,
             author_id: payload.new.author_id,
             study_room_id: payload.new.study_room_id,
             attachment_url: payload.new.attachment_url,
-            created_at: new Date(payload.new.created_at)
+            created_at: new Date(payload.new.created_at),
           };
-          if (user && newMessage.author_id !== user.id) { 
-            addMessageToCache(newMessage)
+          if (user && newMessage.author_id !== user.id) {
+            addMessageToCache(newMessage);
           }
         }
       )
@@ -184,66 +200,67 @@ export default function CourseHomePage() {
           table: "study_room_message",
           filter: `study_room_id.eq.${studyRoomId}`,
         },
-        (payload) => { 
+        (payload) => {
           const updatedMessage = {
             id: payload.new.id,
             content: payload.new.content,
             author_id: payload.new.author_id,
             study_room_id: payload.new.study_room_id,
             attachment_url: payload.new.attachment_url,
-            created_at: new Date(payload.new.created_at)
+            created_at: new Date(payload.new.created_at),
           };
-          updateMessageInCache(updatedMessage)
+          updateMessageInCache(updatedMessage);
         }
       )
       .on(
         "postgres_changes",
-        { 
+        {
           event: "DELETE",
           schema: "public",
           table: "study_room_message",
           filter: `study_room_id.eq.${studyRoomId}`,
         },
-        (payload) => { 
-          deleteMessageFromCache(payload.old.id)
+        (payload) => {
+          deleteMessageFromCache(payload.old.id);
         }
       )
       .subscribe();
 
-      // TODO: Implement reaction realtime
+    // TODO: Implement reaction realtime
 
-      return () => { 
-        messageSubscription.unsubscribe();
-      }
+    return () => {
+      messageSubscription.unsubscribe();
+    };
   }, [
     addMessageToCache,
     studyRoomId,
     deleteMessageFromCache,
     supabase,
     user?.id,
+    updateMessageInCache,
+    user,
   ]);
 
   // Storing online users
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
-  const onUserJoin = (joiningUserIds: string[]) => { 
+  const onUserJoin = useCallback((joiningUserIds: string[]) => {
     setOnlineUsers((prevUsers) => [...prevUsers, ...joiningUserIds]);
-  };
+  }, []);
 
-  const onUserLeave = (leavingUserIds: string[]) => {
-    setOnlineUsers((prevUsers) => 
+  const onUserLeave = useCallback((leavingUserIds: string[]) => {
+    setOnlineUsers((prevUsers) =>
       prevUsers.filter((user) => !leavingUserIds.includes(user))
     );
-  };
-
+  }, []);
 
   // Realtime online users
 
-  useEffect(() => { 
+  useEffect(() => {
     const presenceSubscription = supabase.channel("presence-channel", {
       config: {
-        presence: { 
+        presence: {
           key: user?.id,
         },
       },
@@ -252,7 +269,7 @@ export default function CourseHomePage() {
     presenceSubscription.on(
       "presence",
       { event: "join" },
-      (payload: { newPresences: { user_id: string }[] }) => { 
+      (payload: { newPresences: { user_id: string }[] }) => {
         const joiningUserIds = payload.newPresences.map(
           (presence) => presence.user_id
         );
@@ -263,7 +280,7 @@ export default function CourseHomePage() {
     presenceSubscription.on(
       "presence",
       { event: "leave" },
-      (payload: { leftPresences: { user_id: string }[] }) => { 
+      (payload: { leftPresences: { user_id: string }[] }) => {
         const leavingUserIds = payload.leftPresences.map(
           (presence) => presence.user_id
         );
@@ -271,8 +288,8 @@ export default function CourseHomePage() {
       }
     );
 
-    presenceSubscription.subscribe(async (status) => { 
-       if (status === "SUBSCRIBED") {
+    presenceSubscription.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
         if (user) {
           await presenceSubscription.track({
             user_id: user.id,
@@ -283,13 +300,13 @@ export default function CourseHomePage() {
           const allOnlineUsers = Object.keys(state);
           onUserJoin(allOnlineUsers);
         }
-       }
+      }
     });
 
-    return () => { 
+    return () => {
       presenceSubscription.unsubscribe();
-    }
-  }, [supabase, user?.id, onUserJoin, onUserLeave])
+    };
+  }, [supabase, user, onUserJoin, onUserLeave]);
 
   // Tracking typing statuses
 
@@ -297,30 +314,30 @@ export default function CourseHomePage() {
 
   // Using memos to keep statuses
 
-  const typingText = useMemo(() => { 
-    if (typingUsers.length === 0) { 
+  const typingText = useMemo(() => {
+    if (typingUsers.length === 0) {
       return "";
     }
-    if (typingUsers.length === 1 && user && typingUsers[0] !== user.id) { 
+    if (typingUsers.length === 1 && user && typingUsers[0] !== user.id) {
       const typingUser = members?.find(
         (member) => member.id === typingUsers[0]
       );
       return `${typingUser?.name} is typing...`;
     }
-    if (typingUsers.length > 3 && user && !typingUsers.includes(user.id)) { 
+    if (typingUsers.length > 3 && user && !typingUsers.includes(user.id)) {
       return `Several users are typing...`;
     }
 
-    const typingUserNames = typingUsers.map((userId) => { 
-      if (user && userId === user.id) { 
+    const typingUserNames = typingUsers.map((userId) => {
+      if (user && userId === user.id) {
         return "You";
       }
       const typingUser = members?.find((member) => member.id === userId);
       return typingUser?.handle;
     });
-    
+
     return `${typingUserNames.join(", ")} are typing...`;
-  }, [typingUsers, members])
+  }, [typingUsers, members, user]);
 
   // Determing if someone is typing
 
@@ -328,12 +345,12 @@ export default function CourseHomePage() {
 
   // Typing realtime
 
-  useEffect(() => { 
+  useEffect(() => {
     if (!studyRoomId) return;
 
-    const typingChannel = supabase.channel(`channel-${studyRoomId}`, { 
-      config: { 
-        broadcast: { 
+    const typingChannel = supabase.channel(`channel-${studyRoomId}`, {
+      config: {
+        broadcast: {
           self: true,
         },
       },
@@ -342,13 +359,13 @@ export default function CourseHomePage() {
     typingChannel.on(
       "broadcast",
       { event: "typingStart" },
-      (payload: { payload: { message: string } }) => { 
+      (payload: { payload: { message: string } }) => {
         const typingUserId = payload.payload.message;
-        setTypingUsers((prevUsers: string[]) => { 
+        setTypingUsers((prevUsers: string[]) => {
           if (!prevUsers.includes(typingUserId)) {
-            return [...prevUsers, typingUserId]
+            return [...prevUsers, typingUserId];
           }
-          return prevUsers
+          return prevUsers;
         });
       }
     );
@@ -356,51 +373,51 @@ export default function CourseHomePage() {
     typingChannel.on(
       "broadcast",
       { event: "typingEnd" },
-      (payload: { payload: { message: string } }) => { 
+      (payload: { payload: { message: string } }) => {
         const typingUserId = payload.payload.message;
-        setTypingUsers((prevUsers: string[]) => { 
-          return prevUsers.filter((user: string) => user !== typingUserId)
+        setTypingUsers((prevUsers: string[]) => {
+          return prevUsers.filter((user: string) => user !== typingUserId);
         });
       }
     );
 
     typingChannel.subscribe();
 
-    if (isTyping) { 
+    if (isTyping) {
       typingChannel.send({
         type: "broadcast",
         event: "typingStart",
-        payload: { message: user?.id || "" }
+        payload: { message: user?.id || "" },
       });
-    } else { 
+    } else {
       typingChannel.send({
         type: "broadcast",
         event: "typingEnd",
-        payload: { message: user?.id || "" }
-      })
+        payload: { message: user?.id || "" },
+      });
     }
 
-    return () => { 
+    return () => {
       supabase.removeChannel(typingChannel);
     };
-  }, [studyRoomId, isTyping, supabase, user?.id])
+  }, [studyRoomId, isTyping, supabase, user?.id]);
 
   // Realtime updates for user join / leave, or changing profile image
 
-  useEffect(() => { 
+  useEffect(() => {
     if (!studyRoomId) return;
 
     const userChangeChannel = supabase.channel("user-change");
-    userChangeChannel.on("broadcast", { event: "userStatusChange" }, () => { 
-      queryUtils.refetchQueries({ queryKey: ["members", studyRoomId] })
+    userChangeChannel.on("broadcast", { event: "userStatusChange" }, () => {
+      queryUtils.refetchQueries({ queryKey: ["members", studyRoomId] });
     });
 
     userChangeChannel.subscribe();
 
-    return () => { 
+    return () => {
       supabase.removeChannel(userChangeChannel);
     };
-  }, [courseId, supabase, queryUtils, members]);
+  }, [courseId, supabase, queryUtils, members, studyRoomId]);
 
   // States for draft messages
 
@@ -417,25 +434,29 @@ export default function CourseHomePage() {
 
   // This ensures the newest messages are shown first (scroll to bottom)
 
-  useEffect(() => { 
+  useEffect(() => {
     if (messages?.pages.length === 1 || filteredMessages?.pages.length === 1) {
-      messageEndRef.current?.scrollIntoView()
-    } 
-  }, [messageEndRef, messages, filteredMessages])
+      messageEndRef.current?.scrollIntoView();
+    }
+  }, [messageEndRef, messages, filteredMessages]);
 
   // Handling for whenever a key is pressed down (enter)
 
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => { 
-      if(
-        document.activeElement === messageTextAreaRef.current && 
-        e.key === "Enter" && 
+    (e: KeyboardEvent) => {
+      if (
+        document.activeElement === messageTextAreaRef.current &&
+        e.key === "Enter" &&
         !e.shiftKey
       ) {
         e.preventDefault();
-        
+
         if (draftMessageText.trim() !== "" || !!selectedFile) {
-          const draftMessage = { 
+          if (!studyRoomId) {
+            return toast.error("No study room selected!");
+          }
+
+          const draftMessage: z.infer<typeof DraftMessage> = {
             id: uuidv4(),
             content: draftMessageText,
             author_id: user!.id,
@@ -444,13 +465,12 @@ export default function CourseHomePage() {
             created_at: new Date(),
           };
 
-
           addMessageToCache(draftMessage);
 
           const pendingMessage = draftMessageText;
           const pendingFile = selectedFile;
 
-          console.log(pendingMessage)
+          console.log(pendingMessage);
 
           setDraftMessageText("");
           setSelectedFile(null);
@@ -458,19 +478,19 @@ export default function CourseHomePage() {
 
           sendMessage(supabase, draftMessage, selectedFile)
             .then((postedMessage) => {
-                console.log("Message successfully posted:", postedMessage);
-                if (postedMessage) {
-                    updateMessageInCache(postedMessage);
-                }
-                messageEndRef.current?.scrollIntoView();
+              console.log("Message successfully posted:", postedMessage);
+              if (postedMessage) {
+                updateMessageInCache(postedMessage);
+              }
+              messageEndRef.current?.scrollIntoView();
             })
-            .catch((error) => { 
-                console.error("Message submission error:", error);
-                toast("Message failed to send. Please try again.");
-                deleteMessageFromCache(draftMessage.id);
-                setDraftMessageText(pendingMessage);
-                setSelectedFile(pendingFile);
-                setIsTyping(true);
+            .catch((error) => {
+              console.error("Message submission error:", error);
+              toast("Message failed to send. Please try again.");
+              deleteMessageFromCache(draftMessage.id);
+              setDraftMessageText(pendingMessage);
+              setSelectedFile(pendingFile);
+              setIsTyping(true);
             });
         }
       }
@@ -482,14 +502,15 @@ export default function CourseHomePage() {
       selectedFile,
       supabase,
       updateMessageInCache,
-      user?.id,
+      draftMessageText,
+      user,
     ]
   );
 
-  // useEffect(() => { 
+  // useEffect(() => {
   //   window.addEventListener("keydown", handleKeyDown);
 
-  //   return () => { 
+  //   return () => {
   //     window.removeEventListener("keydown", handleKeyDown);
   //   };
   // }, [handleKeyDown]);
@@ -504,11 +525,13 @@ export default function CourseHomePage() {
       {user && (
         <div className="flex flex-col w-full h-screen max-h-screen overflow-hidden">
           <div className="flex flex-row grow">
-              <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
+            <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
               <ScrollArea
                 className={cn(
                   "flex flex-col grow",
-                  !!selectedFile ? "h-[calc(100vh-286px)]" : "h-[calc(100vh-238px)]"
+                  !!selectedFile
+                    ? "h-[calc(100vh-286px)]"
+                    : "h-[calc(100vh-238px)]"
                 )}
               >
                 {/* Note: The messages appear bottom-to-top because of `flex-col-reverse`.  */}
@@ -535,35 +558,48 @@ export default function CourseHomePage() {
                               channelMembers={members ?? []}
                               message={message}
                             />
+                            <Button />
                           </Fragment>
                         );
                       });
                     })}
                   {/* If no filter is active, show the regular results. */}
-                  {!isFilterActive &&
-                    messages?.pages.map((page) => {
-                      return page.map((message, messageIndex) => {
-                        return (
-                          <Fragment key={message.id}>
-                            {messageIndex === 45 && (
-                              <InView
-                                onChange={(inView, entry) => {
-                                  if (inView && entry.intersectionRatio > 0) {
-                                    fetchNext();
-                                    entry.target.remove();
-                                  }
-                                }}
-                              ></InView>
-                            )}
-                            <MessageView
-                              user={user}
-                              channelMembers={members ?? []}
-                              message={message}
-                            />
-                          </Fragment>
-                        );
-                      });
-                    })}
+                  {!isFilterActive && (
+                    <>
+                      {messages?.pages?.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <p>No messages yet. Be the first to send one!</p>
+                        </div>
+                      ) : (
+                        messages?.pages?.map((page) => {
+                          return page.map((message, messageIndex) => {
+                            return (
+                              <Fragment key={message.id}>
+                                {messageIndex === 45 && (
+                                  <InView
+                                    onChange={(inView, entry) => {
+                                      if (
+                                        inView &&
+                                        entry.intersectionRatio > 0
+                                      ) {
+                                        fetchNext();
+                                        entry.target.remove();
+                                      }
+                                    }}
+                                  ></InView>
+                                )}
+                                <MessageView
+                                  user={user}
+                                  channelMembers={members ?? []}
+                                  message={message}
+                                />
+                              </Fragment>
+                            );
+                          });
+                        })
+                      )}
+                    </>
+                  )}
                 </div>
               </ScrollArea>
               {/* Message send area */}
@@ -581,24 +617,24 @@ export default function CourseHomePage() {
                   </div>
                 )}
                 <div className="flex flex-row w-full pt-3">
-                <Textarea
-                  ref={messageTextAreaRef}
-                  value={draftMessageText}
-                  onChange={(e) => {
-                    setDraftMessageText(e.target.value);
-                    setIsTyping(e.target.value.length > 0)
-                  }}
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      // Trigger message submission
-                      handleKeyDown(e.nativeEvent);
-                    }
-                  }}
-                  onBlur={() => setIsTyping(false)}
-                  className="grow mr-3 bg-sidebar resize-none"
-                  placeholder="Type your message here."
-                />
+                  <Textarea
+                    ref={messageTextAreaRef}
+                    value={draftMessageText}
+                    onChange={(e) => {
+                      setDraftMessageText(e.target.value);
+                      setIsTyping(e.target.value.length > 0);
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        // Trigger message submission
+                        handleKeyDown(e.nativeEvent);
+                      }
+                    }}
+                    onBlur={() => setIsTyping(false)}
+                    className="grow mr-3 bg-sidebar resize-none"
+                    placeholder="Type your message here."
+                  />
                   <div className="flex flex-col gap-2">
                     {/* 
                       This hidden input provides us the functionality to handle selecting
@@ -636,9 +672,35 @@ export default function CourseHomePage() {
                 <p className="text-sm italic py-2 h-3">{typingText}</p>
               </div>
             </div>
-          </div>  
+          </div>
         </div>
       )}
     </>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  // Create the supabase context that works specifically on the server and
+  // pass in the context.
+  const supabase = createSupabaseServerClient(context);
+
+  // Attempt to load the user data
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+
+  // If the user is not logged in, redirect them to the login page.
+  if (userError || !userData) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+
+  // Return the user and profile as props.
+  return {
+    props: {
+      user: userData.user,
+    },
+  };
 }
