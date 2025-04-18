@@ -645,14 +645,16 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
     <>
       {user && (
         <div className="flex flex-row">
-          <CourseSidebar
-            user={user}
-            course={course}
-            studyRooms={studyRooms}
-            resourceRepository={resourceRepository}
-            forumRepository={forumRepository}
-          />
-          <div className="flex flex-col w-full h-screen max-h-screen overflow-hidden">
+          <div className="flex-shrink-0 border-r">
+            <CourseSidebar
+              user={user}
+              course={course}
+              studyRooms={studyRooms}
+              resourceRepository={resourceRepository}
+              forumRepository={forumRepository}
+            />
+          </div>
+          <div className="ml-[70px] flex flex-col w-full h-screen max-h-screen overflow-hidden">
             <StudyRoomHeader
               user={user}
               filterQuery={filterQuery}
@@ -812,7 +814,7 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
                 studyRoomMembers={members ?? []}
                 onlineUserIds={onlineUsers}
                 userId={user.id}
-                className="overflow-visible"
+                className="overflow-visible w-[270px]"
               />
             </div>
           </div>

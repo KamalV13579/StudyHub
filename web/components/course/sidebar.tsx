@@ -138,22 +138,7 @@ export function CourseSidebar({
   };
 
   return (
-    <Sidebar
-      className="h-screen border-r 
-    ml-[5vw] 
-    md:ml-[7vw]
-    lg:ml-[11vw]  
-    xl:ml-[11vw]
-    2xl:ml-[16vw]
-    max-ml-[300px] 
-    min-ml-[70px] 
-    transition-all 
-    duration-300 
-    ease-in-out
-    w-[11vw] 
-    flex-shrink-0 
-  "
-    >
+    <Sidebar className="h-screen border-r ml-[170px] w-[240px]">
       <ScrollArea className="h-full">
         <SidebarContent className="pb-4">
           {/* Course Information Section */}
