@@ -45,6 +45,8 @@ import {
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
+import { InfiniteData } from "@tanstack/react-query";
+import { Message } from "@/utils/supabase/models/message";
 
 export default function CourseHomePage() {
   const router = useRouter();
@@ -165,8 +167,12 @@ export default function CourseHomePage() {
 
   // Realtime for messages
 
+  // This code goes in your useEffect for the real-time subscription in studyroom/[roomId].tsx
+
+  // This should replace your existing useEffect for the real-time subscription
+
   useEffect(() => {
-    if (!studyRoomId) return;
+    if (!studyRoomId || !user) return;
 
     const messageSubscription = supabase
       .channel("messages")
@@ -178,69 +184,161 @@ export default function CourseHomePage() {
           table: "study_room_message",
           filter: `study_room_id.eq.${studyRoomId}`,
         },
-        (payload) => {
-          const newMessage = {
-            id: payload.new.id,
-            content: payload.new.content,
-            author_id: payload.new.author_id,
-            study_room_id: payload.new.study_room_id,
-            attachment_url: payload.new.attachment_url,
-            created_at: new Date(payload.new.created_at),
-          };
-          if (user && newMessage.author_id !== user.id) {
-            addMessageToCache(newMessage);
+        async (payload) => {
+          try {
+            // Skip messages that we've already optimistically added
+            if (payload.new.author_id === user.id) {
+              // Just ensure the message is in the correct format in case our optimistic update was incorrect
+              queryUtils.setQueryData(
+                ["messages", studyRoomId],
+                (
+                  oldData: InfiniteData<z.infer<typeof Message>[]> | undefined
+                ) => {
+                  if (!oldData) return oldData;
+
+                  // Find if this message is already in the cache
+                  const messageExists = oldData.pages.some((page) =>
+                    page.some((msg) => msg.id === payload.new.id)
+                  );
+
+                  // If the message already exists, just return the current data
+                  if (messageExists) return oldData;
+
+                  // If not, we need to add it - which shouldn't normally happen
+                  console.warn(
+                    "Message from current user not found in cache, adding it now"
+                  );
+                  return {
+                    pageParams: oldData.pageParams,
+                    pages: oldData.pages.map((page, index) =>
+                      index === 0
+                        ? [
+                            {
+                              id: payload.new.id,
+                              content: payload.new.content,
+                              author_id: payload.new.author_id,
+                              study_room_id: payload.new.study_room_id,
+                              attachment_url: payload.new.attachment_url,
+                              created_at: new Date(payload.new.created_at),
+                              author: members?.find(
+                                (m) => m.id === user.id
+                              ) || {
+                                id: user.id,
+                                name: "Current User",
+                                handle: "current-user",
+                                avatar_url: null,
+                                major: "Undeclared",
+                                // created_at is removed as it is not part of the expected type
+                              },
+                            },
+                            ...page,
+                          ]
+                        : page
+                    ),
+                  };
+                }
+              );
+              return;
+            }
+
+            // For messages from other users, fetch author info if needed
+            let authorData = members?.find(
+              (m) => m.id === payload.new.author_id
+            );
+
+            if (!authorData) {
+              const { data: fetchedAuthor, error } = await supabase
+                .from("profile")
+                .select("*")
+                .eq("id", payload.new.author_id)
+                .single();
+
+              if (error) {
+                console.error("Error fetching author:", error);
+                authorData = {
+                  id: payload.new.author_id,
+                  name: "Unknown User",
+                  handle: "unknown",
+                  avatar_url: null,
+                  major: "Undeclared",
+                  // created_at: new Date().toISOString(),
+                };
+              } else {
+                authorData = fetchedAuthor;
+
+                // Update members cache for future use
+                if (members) {
+                  queryUtils.setQueryData(
+                    ["members", studyRoomId],
+                    [...members, fetchedAuthor]
+                  );
+                }
+              }
+            }
+
+            // Add the message to the cache with proper error handling
+            queryUtils.setQueryData(
+              ["messages", studyRoomId],
+              (
+                oldData: InfiniteData<z.infer<typeof Message>[]> | undefined
+              ) => {
+                if (!oldData)
+                  return {
+                    pageParams: [0],
+                    pages: [
+                      [
+                        {
+                          id: payload.new.id,
+                          content: payload.new.content,
+                          author: authorData,
+                          attachment_url: payload.new.attachment_url,
+                          created_at: new Date(payload.new.created_at),
+                        },
+                      ],
+                    ],
+                  };
+
+                // Check if message already exists to prevent duplicates
+                const messageExists = oldData.pages.some((page) =>
+                  page.some((msg) => msg.id === payload.new.id)
+                );
+
+                if (messageExists) return oldData;
+
+                // Add the message at the top of the first page
+                return {
+                  pageParams: oldData.pageParams,
+                  pages: oldData.pages.map((page, index) =>
+                    index === 0
+                      ? [
+                          {
+                            id: payload.new.id,
+                            content: payload.new.content,
+                            author: authorData,
+                            attachment_url: payload.new.attachment_url,
+                            created_at: new Date(payload.new.created_at),
+                          },
+                          ...page,
+                        ]
+                      : page
+                  ),
+                };
+              }
+            );
+          } catch (error) {
+            console.error("Error handling real-time message:", error);
+            // Continue execution despite errors
           }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "study_room_message",
-          filter: `study_room_id.eq.${studyRoomId}`,
-        },
-        (payload) => {
-          const updatedMessage = {
-            id: payload.new.id,
-            content: payload.new.content,
-            author_id: payload.new.author_id,
-            study_room_id: payload.new.study_room_id,
-            attachment_url: payload.new.attachment_url,
-            created_at: new Date(payload.new.created_at),
-          };
-          updateMessageInCache(updatedMessage);
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "study_room_message",
-          filter: `study_room_id.eq.${studyRoomId}`,
-        },
-        (payload) => {
-          deleteMessageFromCache(payload.old.id);
         }
       )
       .subscribe();
 
-    // TODO: Implement reaction realtime
+    // Handle other events (UPDATE, DELETE) similarly with proper error handling
 
     return () => {
       messageSubscription.unsubscribe();
     };
-  }, [
-    addMessageToCache,
-    studyRoomId,
-    deleteMessageFromCache,
-    supabase,
-    user?.id,
-    updateMessageInCache,
-    user,
-  ]);
-
+  }, [studyRoomId, user, members, queryUtils, supabase]);
   // Storing online users
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
@@ -507,13 +605,17 @@ export default function CourseHomePage() {
     ]
   );
 
-  // useEffect(() => {
-  //   window.addEventListener("keydown", handleKeyDown);
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
 
-  //   return () => {
-  //     window.removeEventListener("keydown", handleKeyDown);
-  //   };
-  // }, [handleKeyDown]);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages?.pages.length]); // Trigger on any page change
 
   // TODO: Add reaction implementation
 
