@@ -19,18 +19,17 @@ import {
 import { X, ImageIcon, Upload } from "lucide-react";
 import { InView } from "react-intersection-observer";
 import MessageView from "@/components/studyroom/message-view";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { User } from "@supabase/supabase-js";
-import { CourseLayout } from "@/components/course/courseLayout";
 import {
   getStudyRoom,
   getStudyRoomMembers,
 } from "@/utils/supabase/queries/studyroom";
+import StudyRoomHeader from "@/components/studyroom/studyroom-header";
 import { DraftMessage } from "@/utils/supabase/models/message";
 import {
   getPaginatedMessages,
@@ -47,23 +46,15 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import { InfiniteData } from "@tanstack/react-query";
 import { Message } from "@/utils/supabase/models/message";
+import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
 
-export default function CourseHomePage() {
+export type ChannelPageProps = { user: User };
+export default function CourseHomePage({ user }: ChannelPageProps) {
   const router = useRouter();
   const { courseId, roomId: studyRoomId } = router.query;
   const supabase = createSupabaseComponentClient();
 
-  const [user, setUser] = useState<User | null>(null);
   const queryUtils = useQueryClient();
-
-  // Fetches current user
-  useEffect(() => {
-    async function fetchUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    }
-    fetchUser();
-  }, [supabase, router]);
 
   // Fetches the currently selected course
   const { data: course, error } = useQuery({
@@ -167,10 +158,7 @@ export default function CourseHomePage() {
 
   // Realtime for messages
 
-  // This code goes in your useEffect for the real-time subscription in studyroom/[roomId].tsx
-
-  // This should replace your existing useEffect for the real-time subscription
-
+  // Replace your existing real-time message handler with this more robust version:
   useEffect(() => {
     if (!studyRoomId || !user) return;
 
@@ -188,7 +176,7 @@ export default function CourseHomePage() {
           try {
             // Skip messages that we've already optimistically added
             if (payload.new.author_id === user.id) {
-              // Just ensure the message is in the correct format in case our optimistic update was incorrect
+              // Just ensure the message is in the correct format
               queryUtils.setQueryData(
                 ["messages", studyRoomId],
                 (
@@ -196,24 +184,24 @@ export default function CourseHomePage() {
                 ) => {
                   if (!oldData) return oldData;
 
-                  // Find if this message is already in the cache
+                  // Check if message already exists to prevent duplicates
                   const messageExists = oldData.pages.some((page) =>
                     page.some((msg) => msg.id === payload.new.id)
                   );
 
-                  // If the message already exists, just return the current data
                   if (messageExists) return oldData;
 
                   // If not, we need to add it - which shouldn't normally happen
                   console.warn(
                     "Message from current user not found in cache, adding it now"
                   );
+
                   return {
                     pageParams: oldData.pageParams,
                     pages: oldData.pages.map((page, index) =>
                       index === 0
                         ? [
-                            {
+                            Message.parse({
                               id: payload.new.id,
                               content: payload.new.content,
                               author_id: payload.new.author_id,
@@ -228,9 +216,8 @@ export default function CourseHomePage() {
                                 handle: "current-user",
                                 avatar_url: null,
                                 major: "Undeclared",
-                                // created_at is removed as it is not part of the expected type
                               },
-                            },
+                            }),
                             ...page,
                           ]
                         : page
@@ -247,32 +234,43 @@ export default function CourseHomePage() {
             );
 
             if (!authorData) {
-              const { data: fetchedAuthor, error } = await supabase
-                .from("profile")
-                .select("*")
-                .eq("id", payload.new.author_id)
-                .single();
+              try {
+                const { data: fetchedAuthor, error } = await supabase
+                  .from("profile")
+                  .select("*")
+                  .eq("id", payload.new.author_id)
+                  .single();
 
-              if (error) {
-                console.error("Error fetching author:", error);
+                if (error) {
+                  console.error("Error fetching author:", error);
+                  authorData = {
+                    id: payload.new.author_id,
+                    name: "Unknown User",
+                    handle: "unknown",
+                    avatar_url: null,
+                    major: "Undeclared",
+                  };
+                } else {
+                  authorData = fetchedAuthor;
+
+                  // Update members cache for future use
+                  if (members) {
+                    queryUtils.setQueryData(
+                      ["members", studyRoomId],
+                      [...members, fetchedAuthor]
+                    );
+                  }
+                }
+              } catch (fetchError) {
+                console.error("Failed to fetch author info:", fetchError);
+                // Use fallback author data
                 authorData = {
                   id: payload.new.author_id,
                   name: "Unknown User",
                   handle: "unknown",
                   avatar_url: null,
                   major: "Undeclared",
-                  // created_at: new Date().toISOString(),
                 };
-              } else {
-                authorData = fetchedAuthor;
-
-                // Update members cache for future use
-                if (members) {
-                  queryUtils.setQueryData(
-                    ["members", studyRoomId],
-                    [...members, fetchedAuthor]
-                  );
-                }
               }
             }
 
@@ -282,21 +280,26 @@ export default function CourseHomePage() {
               (
                 oldData: InfiniteData<z.infer<typeof Message>[]> | undefined
               ) => {
-                if (!oldData)
-                  return {
-                    pageParams: [0],
-                    pages: [
-                      [
-                        {
-                          id: payload.new.id,
-                          content: payload.new.content,
-                          author: authorData,
-                          attachment_url: payload.new.attachment_url,
-                          created_at: new Date(payload.new.created_at),
-                        },
-                      ],
-                    ],
-                  };
+                if (!oldData) {
+                  // If there's no existing data, create a new structure
+                  try {
+                    const newMessage = Message.parse({
+                      id: payload.new.id,
+                      content: payload.new.content,
+                      author: authorData,
+                      attachment_url: payload.new.attachment_url,
+                      created_at: new Date(payload.new.created_at),
+                    });
+
+                    return {
+                      pageParams: [0],
+                      pages: [[newMessage]],
+                    };
+                  } catch (parseError) {
+                    console.error("Failed to parse message:", parseError);
+                    return undefined;
+                  }
+                }
 
                 // Check if message already exists to prevent duplicates
                 const messageExists = oldData.pages.some((page) =>
@@ -305,24 +308,27 @@ export default function CourseHomePage() {
 
                 if (messageExists) return oldData;
 
-                // Add the message at the top of the first page
-                return {
-                  pageParams: oldData.pageParams,
-                  pages: oldData.pages.map((page, index) =>
-                    index === 0
-                      ? [
-                          {
-                            id: payload.new.id,
-                            content: payload.new.content,
-                            author: authorData,
-                            attachment_url: payload.new.attachment_url,
-                            created_at: new Date(payload.new.created_at),
-                          },
-                          ...page,
-                        ]
-                      : page
-                  ),
-                };
+                // Try to safely parse and add the new message
+                try {
+                  const newMessage = Message.parse({
+                    id: payload.new.id,
+                    content: payload.new.content,
+                    author: authorData,
+                    attachment_url: payload.new.attachment_url,
+                    created_at: new Date(payload.new.created_at),
+                  });
+
+                  // Add the message at the top of the first page
+                  return {
+                    pageParams: oldData.pageParams,
+                    pages: oldData.pages.map((page, index) =>
+                      index === 0 ? [newMessage, ...page] : page
+                    ),
+                  };
+                } catch (parseError) {
+                  console.error("Failed to parse message:", parseError);
+                  return oldData; // Return unchanged data on error
+                }
               }
             );
           } catch (error) {
@@ -413,29 +419,23 @@ export default function CourseHomePage() {
   // Using memos to keep statuses
 
   const typingText = useMemo(() => {
-    if (typingUsers.length === 0) {
-      return "";
-    }
-    if (typingUsers.length === 1 && user && typingUsers[0] !== user.id) {
-      const typingUser = members?.find(
-        (member) => member.id === typingUsers[0]
-      );
-      return `${typingUser?.name} is typing...`;
-    }
-    if (typingUsers.length > 3 && user && !typingUsers.includes(user.id)) {
-      return `Several users are typing...`;
-    }
+    if (typingUsers.length === 0) return "";
 
-    const typingUserNames = typingUsers.map((userId) => {
-      if (user && userId === user.id) {
-        return "You";
-      }
-      const typingUser = members?.find((member) => member.id === userId);
-      return typingUser?.handle;
-    });
+    const filteredUsers = typingUsers.filter((id) => id !== user?.id);
+    if (filteredUsers.length === 0) return "";
+
+    // Rest of your existing logic...
+    const typingUserNames = filteredUsers
+      .slice(0, 3)
+      .map(
+        (userId) => members?.find((m) => m.id === userId)?.name || "Someone"
+      );
+
+    if (filteredUsers.length > 3) return "Several people are typing...";
+    if (filteredUsers.length === 1) return `${typingUserNames[0]} is typing...`;
 
     return `${typingUserNames.join(", ")} are typing...`;
-  }, [typingUsers, members, user]);
+  }, [typingUsers, members, user?.id]);
 
   // Determing if someone is typing
 
@@ -444,7 +444,7 @@ export default function CourseHomePage() {
   // Typing realtime
 
   useEffect(() => {
-    if (!studyRoomId) return;
+    if (!studyRoomId || !user) return;
 
     const typingChannel = supabase.channel(`channel-${studyRoomId}`, {
       config: {
@@ -454,28 +454,33 @@ export default function CourseHomePage() {
       },
     });
 
+    // Handle typing start events (IGNORE CURRENT USER)
     typingChannel.on(
       "broadcast",
       { event: "typingStart" },
       (payload: { payload: { message: string } }) => {
         const typingUserId = payload.payload.message;
-        setTypingUsers((prevUsers: string[]) => {
-          if (!prevUsers.includes(typingUserId)) {
-            return [...prevUsers, typingUserId];
-          }
-          return prevUsers;
-        });
+        if (typingUserId === user.id) return; // Ignore self
+
+        setTypingUsers((prevUsers) =>
+          prevUsers.includes(typingUserId)
+            ? prevUsers
+            : [...prevUsers, typingUserId]
+        );
       }
     );
 
+    // Handle typing end events (IGNORE CURRENT USER)
     typingChannel.on(
       "broadcast",
       { event: "typingEnd" },
       (payload: { payload: { message: string } }) => {
         const typingUserId = payload.payload.message;
-        setTypingUsers((prevUsers: string[]) => {
-          return prevUsers.filter((user: string) => user !== typingUserId);
-        });
+        if (typingUserId === user.id) return; // Ignore self
+
+        setTypingUsers((prevUsers) =>
+          prevUsers.filter((userId) => userId !== typingUserId)
+        );
       }
     );
 
@@ -485,20 +490,20 @@ export default function CourseHomePage() {
       typingChannel.send({
         type: "broadcast",
         event: "typingStart",
-        payload: { message: user?.id || "" },
+        payload: { message: user.id },
       });
     } else {
       typingChannel.send({
         type: "broadcast",
         event: "typingEnd",
-        payload: { message: user?.id || "" },
+        payload: { message: user.id },
       });
     }
 
     return () => {
       supabase.removeChannel(typingChannel);
     };
-  }, [studyRoomId, isTyping, supabase, user?.id]);
+  }, [studyRoomId, supabase, user, isTyping]);
 
   // Realtime updates for user join / leave, or changing profile image
 
@@ -615,7 +620,7 @@ export default function CourseHomePage() {
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages?.pages.length]); // Trigger on any page change
+  }, [messages?.pages.length]);
 
   // TODO: Add reaction implementation
 
@@ -626,6 +631,12 @@ export default function CourseHomePage() {
     <>
       {user && (
         <div className="flex flex-col w-full h-screen max-h-screen overflow-hidden">
+          <StudyRoomHeader
+            user={user}
+            filterQuery={filterQuery}
+            setFilterQuery={setFilterQuery}
+            selectedStudyRoom={studyRoom ?? undefined}
+          />
           <div className="flex flex-row grow">
             <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
               <ScrollArea
@@ -660,7 +671,6 @@ export default function CourseHomePage() {
                               channelMembers={members ?? []}
                               message={message}
                             />
-                            <Button />
                           </Fragment>
                         );
                       });
@@ -774,6 +784,14 @@ export default function CourseHomePage() {
                 <p className="text-sm italic py-2 h-3">{typingText}</p>
               </div>
             </div>
+            {/* User sidebar */}
+            <StudyRoomUserSidebar
+              studyRoom={studyRoom ?? undefined}
+              studyRoomMembers={members ?? []}
+              onlineUserIds={onlineUsers}
+              userId={user.id}
+              className="overflow-visible"
+            />
           </div>
         </div>
       )}

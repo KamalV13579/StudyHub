@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import { z } from "zod";
-import { Profile } from "../models/profile"
+import { Profile } from "../models/profile";
 
 // Retrieves the list of study rooms the current user has joined.
 export const getStudyRooms = async (
@@ -181,31 +181,32 @@ export const getStudyRoom = async (
 export const getStudyRoomMembers = async (
   supabase: SupabaseClient,
   studyRoomId: string
-) => { 
+) => {
   const query = supabase
     .from("study_room_membership")
     .select(
       `
         profile:profile!profile_id ( id, name, handle, avatar_url, major, created_at),
         is_owner
-      `)
-      .eq("study_room_id", studyRoomId);
+      `
+    )
+    .eq("study_room_id", studyRoomId);
 
-    const { data: studyRoomMembers, error: studyRoomMembersError } = await query;
+  const { data: studyRoomMembers, error: studyRoomMembersError } = await query;
 
-    if (studyRoomMembersError) {
-      throw new Error(
-        `Error feetching server members: ${studyRoomMembersError.message}`
-      )
-    }
+  if (studyRoomMembersError) {
+    throw new Error(
+      `Error feetching server members: ${studyRoomMembersError.message}`
+    );
+  }
 
-    const members = z
-      .object({
-        profile: Profile,
-      })
-      .array()
-      .parse(studyRoomMembers);
-    return members.map((member) => member.profile);
+  const members = z
+    .object({
+      profile: Profile,
+    })
+    .array()
+    .parse(studyRoomMembers);
+  return members.map((member) => member.profile);
 };
 
 export const updateStudyRoomName = async (
@@ -228,7 +229,7 @@ export const leaveStudyRoom = async (
   studyRoomId: string
 ): Promise<void> => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if(userError || !userData) throw Error("Error loading current user.");
+  if (userError || !userData) throw Error("Error loading current user.");
 
   const { error: membershipError } = await supabase
     .from("study_room_membership")
@@ -236,10 +237,10 @@ export const leaveStudyRoom = async (
     .eq("study_room_id", studyRoomId)
     .eq("profile_id", userData.user.id);
 
-  if(membershipError) {
+  if (membershipError) {
     throw new Error(`Error leaving studyroom: ${membershipError.message}`);
   }
-}
+};
 
 export const deleteStudyRoom = async (
   supabase: SupabaseClient,

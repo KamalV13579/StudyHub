@@ -10,19 +10,8 @@ import ProfileAvatar from "../profile/profile-avatar";
 import ProfilePopover from "../profile/profile-popover";
 import { z } from "zod";
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { Button } from "../ui/button";
-import { SmilePlus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverTrigger } from "../ui/popover";
 import { User } from "@supabase/supabase-js";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../ui/hover-card";
 import { Profile } from "@/utils/supabase/models/profile";
-import { ScrollArea } from "../ui/scroll-area";
 
 type MessageViewProps = {
   user: User;
@@ -30,18 +19,11 @@ type MessageViewProps = {
   message: z.infer<typeof Message>;
 };
 export default function MessageView({
-  user,
   channelMembers,
   message,
 }: MessageViewProps) {
-  const [isHovering, setIsHovering] = useState(false);
-
   return (
-    <div
-      className="flex flex-row w-full gap-3 p-2 hover:bg-accent rounded-lg"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+    <div className="flex flex-row w-full gap-3 p-2 hover:bg-accent rounded-lg">
       <ProfileAvatar
         profile={channelMembers.find((m) => m.id === message.author.id)}
       />

@@ -10,9 +10,7 @@ export const StudyRoomLayout: FC<StudyRoomLayoutProps> = ({ children }) => {
     <CourseLayout>
       <div className="study-room-layout">
         {children}
-        <p>
-          Testing
-        </p>
+        <p>Testing</p>
       </div>
     </CourseLayout>
   );

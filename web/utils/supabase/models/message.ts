@@ -4,7 +4,7 @@ import { Profile } from "./profile";
 export const Message = z.object({
   id: z.string(),
   content: z.string(),
-  created_at: z.date({ coerce: true }).nullable().default(null),
+  created_at: z.coerce.date(),
   attachment_url: z.string().nullable(),
   author: Profile,
 });

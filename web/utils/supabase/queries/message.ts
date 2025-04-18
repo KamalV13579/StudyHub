@@ -18,9 +18,7 @@ export const getPaginatedMessages = async (
       content,
       created_at,
       attachment_url,
-      author_id,
-      study_room_id,
-      author:profile!author_id ( id, name, handle, avatar_url, major, created_at )
+      author:profile!author_id ( id, name, handle, avatar_url, major )
     `
     )
     .eq("study_room_id", studyRoomId)
@@ -38,7 +36,14 @@ export const getPaginatedMessages = async (
 
   console.log("Raw messages from Supabase:", messages);
 
-  return Message.array().parse(messages);
+  try {
+    const parsedMessages = Message.array().parse(messages);
+    console.log("Successfully parsed messages:", parsedMessages);
+    return parsedMessages;
+  } catch (error) {
+    console.error("Failed to parse messages:", error, messages);
+    return [];
+  }
 };
 
 export const sendMessage = async (
@@ -46,7 +51,6 @@ export const sendMessage = async (
   draftMessage: z.infer<typeof DraftMessage>,
   file: File | null
 ) => {
-  // Step 1: Insert the message (without selecting complex nested joins)
   const { data: message, error } = await supabase
     .from("study_room_message")
     .insert(draftMessage)
@@ -93,16 +97,14 @@ export const sendMessage = async (
             author_id,
             study_room_id
             `
-        ) // Add this to return the updated message
+        )
         .single();
 
       if (error) throw Error(error.message);
 
-      // Make sure we're returning a non-null value that matches DraftMessage schema
       return DraftMessage.parse(updatedMessage);
     }
   }
 
-  // Always return the message, whether it was updated with an attachment or not
   return DraftMessage.parse(message);
 };
