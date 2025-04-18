@@ -150,17 +150,32 @@ export const getStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string
 ): Promise<z.infer<typeof StudyRoom>> => {
+  // Fetch study room with creator information
   const { data, error } = await supabase
     .from("study_room")
-    .select("*")
+    .select(
+      `
+      *,
+      creator:study_room_membership!inner(
+        profile_id
+      )
+    `
+    )
     .eq("id", studyRoomId)
+    .eq("study_room_membership.is_owner", true)
     .single();
 
   if (error || !data) {
     throw new Error(`Error fetching study room: ${error?.message}`);
   }
 
-  return data as z.infer<typeof StudyRoom>;
+  // Map the result to include creator_id
+  return {
+    id: data.id,
+    course_id: data.course_id,
+    title: data.title,
+    creator_id: data.creator[0]?.profile_id,
+  } as z.infer<typeof StudyRoom>;
 };
 
 export const getStudyRoomMembers = async (

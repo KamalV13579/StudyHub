@@ -70,7 +70,7 @@ export function StudyRoomUserSidebar({
                     >
                       <StudyRoomUserView
                         profile={user}
-                        isAdmin={user.id === studyRoom?.creator_id}
+                        isAdmin={studyRoom?.creator_id === user.id}
                       />
                     </ProfilePopover>
                   </SidebarMenuItem>

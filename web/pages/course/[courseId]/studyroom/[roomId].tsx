@@ -47,6 +47,7 @@ import { toast } from "sonner";
 import { InfiniteData } from "@tanstack/react-query";
 import { Message } from "@/utils/supabase/models/message";
 import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
+import { CourseSidebar } from "@/components/course/sidebar";
 
 export type ChannelPageProps = { user: User };
 export default function CourseHomePage({ user }: ChannelPageProps) {
@@ -643,168 +644,177 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
   return (
     <>
       {user && (
-        <div className="flex flex-col w-full h-screen max-h-screen overflow-hidden">
-          <StudyRoomHeader
+        <div className="flex flex-row">
+          <CourseSidebar
             user={user}
-            filterQuery={filterQuery}
-            setFilterQuery={setFilterQuery}
-            selectedStudyRoom={studyRoom ?? undefined}
+            course={course}
+            studyRooms={studyRooms}
+            resourceRepository={resourceRepository}
+            forumRepository={forumRepository}
           />
-          <div className="flex flex-row grow">
-            <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
-              <ScrollArea
-                className={cn(
-                  "flex flex-col grow",
-                  !!selectedFile
-                    ? "h-[calc(100vh-286px)]"
-                    : "h-[calc(100vh-238px)]"
-                )}
-              >
-                {/* Note: The messages appear bottom-to-top because of `flex-col-reverse`.  */}
-                <div className="flex flex-col-reverse grow p-3">
-                  <div ref={messageEndRef}></div>
-                  {/* If the filter is active, show the filter results. */}
-                  {isFilterActive &&
-                    filteredMessages?.pages.map((page) => {
-                      return page.map((message, messageIndex) => {
-                        return (
-                          <Fragment key={message.id}>
-                            {messageIndex === 45 && (
-                              <InView
-                                onChange={(inView, entry) => {
-                                  if (inView && entry.intersectionRatio > 0) {
-                                    filteredFetchNext();
-                                    entry.target.remove();
-                                  }
-                                }}
-                              ></InView>
-                            )}
-                            <MessageView
-                              user={user}
-                              channelMembers={members ?? []}
-                              message={message}
-                            />
-                          </Fragment>
-                        );
-                      });
-                    })}
-                  {/* If no filter is active, show the regular results. */}
-                  {!isFilterActive && (
-                    <>
-                      {messages?.pages?.length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
-                          <p>No messages yet. Be the first to send one!</p>
-                        </div>
-                      ) : (
-                        messages?.pages?.map((page) => {
-                          return page.map((message, messageIndex) => {
-                            return (
-                              <Fragment key={message.id}>
-                                {messageIndex === 45 && (
-                                  <InView
-                                    onChange={(inView, entry) => {
-                                      if (
-                                        inView &&
-                                        entry.intersectionRatio > 0
-                                      ) {
-                                        fetchNext();
-                                        entry.target.remove();
-                                      }
-                                    }}
-                                  ></InView>
-                                )}
-                                <MessageView
-                                  user={user}
-                                  channelMembers={members ?? []}
-                                  message={message}
-                                />
-                              </Fragment>
-                            );
-                          });
-                        })
-                      )}
-                    </>
+          <div className="flex flex-col w-full h-screen max-h-screen overflow-hidden">
+            <StudyRoomHeader
+              user={user}
+              filterQuery={filterQuery}
+              setFilterQuery={setFilterQuery}
+              selectedStudyRoom={studyRoom ?? undefined}
+            />
+            <div className="flex flex-row grow">
+              <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
+                <ScrollArea
+                  className={cn(
+                    "flex flex-col grow",
+                    !!selectedFile
+                      ? "h-[calc(100vh-286px)]"
+                      : "h-[calc(100vh-238px)]"
                   )}
-                </div>
-              </ScrollArea>
-              {/* Message send area */}
-              <div className="flex flex-col w-full px-6 pb-6 pt-3 border-t">
-                {selectedFile && (
-                  <div className="flex flex-row w-full gap-3">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setSelectedFile(null)}
-                    >
-                      <ImageIcon />
-                      {selectedFile.name}
-                      <X />
-                    </Button>
+                >
+                  {/* Note: The messages appear bottom-to-top because of `flex-col-reverse`.  */}
+                  <div className="flex flex-col-reverse grow p-3">
+                    <div ref={messageEndRef}></div>
+                    {/* If the filter is active, show the filter results. */}
+                    {isFilterActive &&
+                      filteredMessages?.pages.map((page) => {
+                        return page.map((message, messageIndex) => {
+                          return (
+                            <Fragment key={message.id}>
+                              {messageIndex === 45 && (
+                                <InView
+                                  onChange={(inView, entry) => {
+                                    if (inView && entry.intersectionRatio > 0) {
+                                      filteredFetchNext();
+                                      entry.target.remove();
+                                    }
+                                  }}
+                                ></InView>
+                              )}
+                              <MessageView
+                                user={user}
+                                channelMembers={members ?? []}
+                                message={message}
+                              />
+                            </Fragment>
+                          );
+                        });
+                      })}
+                    {/* If no filter is active, show the regular results. */}
+                    {!isFilterActive && (
+                      <>
+                        {messages?.pages?.length === 0 ? (
+                          <div className="flex items-center justify-center h-full">
+                            <p>No messages yet. Be the first to send one!</p>
+                          </div>
+                        ) : (
+                          messages?.pages?.map((page) => {
+                            return page.map((message, messageIndex) => {
+                              return (
+                                <Fragment key={message.id}>
+                                  {messageIndex === 45 && (
+                                    <InView
+                                      onChange={(inView, entry) => {
+                                        if (
+                                          inView &&
+                                          entry.intersectionRatio > 0
+                                        ) {
+                                          fetchNext();
+                                          entry.target.remove();
+                                        }
+                                      }}
+                                    ></InView>
+                                  )}
+                                  <MessageView
+                                    user={user}
+                                    channelMembers={members ?? []}
+                                    message={message}
+                                  />
+                                </Fragment>
+                              );
+                            });
+                          })
+                        )}
+                      </>
+                    )}
                   </div>
-                )}
-                <div className="flex flex-row w-full pt-3">
-                  <Textarea
-                    ref={messageTextAreaRef}
-                    value={draftMessageText}
-                    onChange={(e) => {
-                      setDraftMessageText(e.target.value);
-                      setIsTyping(e.target.value.length > 0);
-                    }}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        // Trigger message submission
-                        handleKeyDown(e.nativeEvent);
-                      }
-                    }}
-                    onBlur={() => setIsTyping(false)}
-                    className="grow mr-3 bg-sidebar resize-none"
-                    placeholder="Type your message here."
-                  />
-                  <div className="flex flex-col gap-2">
-                    {/* 
+                </ScrollArea>
+                {/* Message send area */}
+                <div className="flex flex-col w-full px-6 pb-6 pt-3 border-t">
+                  {selectedFile && (
+                    <div className="flex flex-row w-full gap-3">
+                      <Button
+                        variant="secondary"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        <ImageIcon />
+                        {selectedFile.name}
+                        <X />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex flex-row w-full pt-3">
+                    <Textarea
+                      ref={messageTextAreaRef}
+                      value={draftMessageText}
+                      onChange={(e) => {
+                        setDraftMessageText(e.target.value);
+                        setIsTyping(e.target.value.length > 0);
+                      }}
+                      onKeyDown={(e: React.KeyboardEvent) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          // Trigger message submission
+                          handleKeyDown(e.nativeEvent);
+                        }
+                      }}
+                      onBlur={() => setIsTyping(false)}
+                      className="grow mr-3 bg-sidebar resize-none"
+                      placeholder="Type your message here."
+                    />
+                    <div className="flex flex-col gap-2">
+                      {/* 
                       This hidden input provides us the functionality to handle selecting
                       new  pages. This input only accepts images, and when a file is selected,
                       the file is stored in the `selectedFile` state.
                       */}
-                    <Input
-                      className="hidden"
-                      type="file"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={(e) => {
-                        setSelectedFile(
-                          (e.target.files ?? []).length > 0
-                            ? e.target.files![0]
-                            : null
-                        );
-                        messageTextAreaRef.current?.focus();
-                      }}
-                    />
+                      <Input
+                        className="hidden"
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={(e) => {
+                          setSelectedFile(
+                            (e.target.files ?? []).length > 0
+                              ? e.target.files![0]
+                              : null
+                          );
+                          messageTextAreaRef.current?.focus();
+                        }}
+                      />
 
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      disabled={!!selectedFile}
-                      onClick={() => {
-                        if (fileInputRef && fileInputRef.current)
-                          fileInputRef.current.click();
-                      }}
-                    >
-                      <Upload />
-                    </Button>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        disabled={!!selectedFile}
+                        onClick={() => {
+                          if (fileInputRef && fileInputRef.current)
+                            fileInputRef.current.click();
+                        }}
+                      >
+                        <Upload />
+                      </Button>
+                    </div>
                   </div>
+                  <p className="text-sm italic py-2 h-3">{typingText}</p>
                 </div>
-                <p className="text-sm italic py-2 h-3">{typingText}</p>
               </div>
+              {/* User sidebar */}
+              <StudyRoomUserSidebar
+                studyRoom={studyRoom ?? undefined}
+                studyRoomMembers={members ?? []}
+                onlineUserIds={onlineUsers}
+                userId={user.id}
+                className="overflow-visible"
+              />
             </div>
-            {/* User sidebar */}
-            <StudyRoomUserSidebar
-              studyRoom={studyRoom ?? undefined}
-              studyRoomMembers={members ?? []}
-              onlineUserIds={onlineUsers}
-              userId={user.id}
-              className="overflow-visible"
-            />
           </div>
         </div>
       )}

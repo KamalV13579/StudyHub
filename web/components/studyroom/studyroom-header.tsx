@@ -80,7 +80,7 @@ export default function StudyRoomHeader({
             <Input
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder="Search channel..."
+              placeholder="Search study room..."
               className="h-9 pl-8 bg-background"
             />
           </div>
