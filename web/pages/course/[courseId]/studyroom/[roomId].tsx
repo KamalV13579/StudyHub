@@ -352,9 +352,19 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
           }
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "study_room_message",
+          filter: `study_room_id.eq.${studyRoomId}`,
+        },
+        (payload) => {
+          deleteMessageFromCacheFn(queryUtils, studyRoomId)(payload.old.id);
+        }
+      )
       .subscribe();
-
-    // Handle other events (UPDATE, DELETE) similarly with proper error handling
 
     return () => {
       messageSubscription.unsubscribe();
@@ -694,6 +704,7 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
                                 user={user}
                                 channelMembers={members ?? []}
                                 message={message}
+                                supabase={supabase}
                               />
                             </Fragment>
                           );
@@ -728,6 +739,8 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
                                     user={user}
                                     channelMembers={members ?? []}
                                     message={message}
+                                    supabase={supabase}
+                                    studyRoomId={studyRoomId}
                                   />
                                 </Fragment>
                               );

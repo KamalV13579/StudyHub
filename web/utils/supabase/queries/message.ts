@@ -108,3 +108,20 @@ export const sendMessage = async (
 
   return DraftMessage.parse(message);
 };
+
+export const deleteMessage = async (
+  supabase: SupabaseClient,
+  messageId: string
+) => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData) throw Error("Error loading current user.");
+
+  const { error } = await supabase
+    .from("study_room_message")
+    .delete()
+    .eq("id", messageId);
+
+  if (error) {
+    throw new Error(`Error removing message: ${error.message}`);
+  }
+};
