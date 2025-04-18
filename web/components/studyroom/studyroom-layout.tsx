@@ -1,17 +1,14 @@
-import React, { FC } from "react";
-import { CourseLayout } from "@/components/course/courseLayout";
+import React from "react";
 
 interface StudyRoomLayoutProps {
   children: React.ReactNode;
 }
 
-export const StudyRoomLayout: FC<StudyRoomLayoutProps> = ({ children }) => {
+export function StudyRoomLayout({ children }: StudyRoomLayoutProps) {
   return (
-    <CourseLayout>
-      <div className="study-room-layout">
-        {children}
-        <p>Testing</p>
-      </div>
-    </CourseLayout>
+    <div className="study-room-layout">
+      {children}
+      <p>Testing</p>
+    </div>
   );
-};
+}

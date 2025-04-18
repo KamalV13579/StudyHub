@@ -33,6 +33,7 @@ export default function ProfilePopover({
   children,
   ...props
 }: ProfilePopoverProps & React.HTMLProps<typeof HTMLDivElement>) {
+  console.log("ProfilePopover", profile);
   return (
     <Popover {...props}>
       <PopoverTrigger className={triggerFullWidth ? `w-full` : ""}>
@@ -45,7 +46,7 @@ export default function ProfilePopover({
         align={align}
       >
         <div className="flex flex-col w-full">
-          <ProfileAvatar profile={profile} className=" size-16" />
+          <ProfileAvatar profile={profile} />
           <div className="flex flex-col w-full mt-4">
             <p className="font-bold text-lg">{profile?.name}</p>
             <p className="text-muted-foreground">@{profile?.handle}</p>

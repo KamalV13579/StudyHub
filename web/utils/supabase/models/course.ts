@@ -5,3 +5,5 @@ export const Course = z.object({
   course_code: z.string(),
   course_name: z.string(),
 });
+
+export type Course = z.infer<typeof Course>;

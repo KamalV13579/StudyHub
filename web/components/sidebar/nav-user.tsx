@@ -22,25 +22,27 @@ import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { changeProfileDisplayName, changeProfileImage, getProfile } from "@/utils/supabase/queries/profile";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
-import { User } from "@supabase/supabase-js";
 import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
 import { useRouter } from "next/router";
+import { User } from "@supabase/supabase-js";
+import { useSupabase } from "@/lib/supabase";
 
-type NavUserProps = { user: User };
+type NavUserProps = { 
+  user: User 
+};
 
 export function NavUser({ user }: NavUserProps) {
   const queryUtils = useQueryClient();
-  const supabase = createSupabaseComponentClient();
   const router = useRouter();
   const { isMobile } = useSidebar();
+  const supabase = useSupabase();
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [renameText, setRenameText] = useState("");
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: () => getProfile(supabase, user?.id),
+    queryKey: ["profile", user.id],
+    queryFn: () => getProfile(supabase, user.id),
   });
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export function NavUser({ user }: NavUserProps) {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <ProfileAvatar />
+                <ProfileAvatar profile={profile} />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{profile?.name}</span>
                   <span className="truncate text-xs">@{profile?.handle}</span>
@@ -105,7 +107,7 @@ export function NavUser({ user }: NavUserProps) {
                     disabled={renameText.length < 1}
                     type="submit"
                     onClick={async () => {
-                      await changeProfileDisplayName(supabase, renameText);
+                      await changeProfileDisplayName(supabase, renameText, user.id);
                       broadcastUserChange(supabase);
                       toast("Display name changed.");
                       queryUtils.refetchQueries({ queryKey: ["profile"] });
@@ -147,7 +149,7 @@ export function NavUser({ user }: NavUserProps) {
         onChange={async (e) => {
           const file = (e.target.files ?? []).length > 0 ? e.target.files![0] : null;
           if (file) {
-            await changeProfileImage(supabase, file);
+            await changeProfileImage(supabase, file, user.id);
             broadcastUserChange(supabase);
             toast("Profile image changed.", {
               description: "It may take a few minutes for the image to process.",

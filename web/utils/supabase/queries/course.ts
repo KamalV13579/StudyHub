@@ -1,22 +1,16 @@
-import { SupabaseClient } from "@supabase/supabase-js";
 import { Course } from "@/utils/supabase/models/course";
 import { z } from "zod";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 // Retrieves the list of courses the current user has joined.
 export const getCourses = async (
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
+  userId: string
 ): Promise<z.infer<typeof Course>[]> => {
-  // Get the current authenticated user.
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
-  // Fetch course membership entries for the current user.
   const { data: membershipData, error: membershipError } = await supabase
     .from("course_membership")
     .select("course_id")
-    .eq("profile_id", userData.user.id);
+    .eq("profile_id", userId);
 
   if (membershipError || !membershipData) {
     throw new Error(
@@ -48,19 +42,15 @@ export type JoinedCourse = z.infer<typeof Course> & { alreadyJoined: boolean };
 export const joinCourse = async (
   supabase: SupabaseClient,
   courseCode: string,
-  isTutor: boolean = false
+  isTutor: boolean = false,
+  userId: string
 ): Promise<JoinedCourse> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
   // Look up the course by course_code.
   const { data: course, error: courseError } = await supabase
     .from("course")
     .select("*")
     .eq("course_code", courseCode)
-    .single();
+    .maybeSingle();
 
   if (courseError || !course) {
     throw new Error(`Course not found: ${courseCode}`);
@@ -71,7 +61,7 @@ export const joinCourse = async (
     await supabase
       .from("course_membership")
       .select("*")
-      .eq("profile_id", userData.user.id)
+      .eq("profile_id", userId)
       .eq("course_id", course.id)
       .maybeSingle();
 
@@ -90,7 +80,7 @@ export const joinCourse = async (
     .from("course_membership")
     .insert([
       {
-        profile_id: userData.user.id,
+        profile_id: userId,
         course_id: course.id,
         is_tutor: isTutor,
       },
@@ -124,17 +114,13 @@ export const getCourseInfo = async (
 // Deletes a course from user's course list by removing their membership.
 export const deleteCourse = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<void> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
   const { error } = await supabase
     .from("course_membership")
     .delete()
-    .eq("profile_id", userData.user.id)
+    .eq("profile_id", userId)
     .eq("course_id", courseId);
 
   if (error) {
@@ -144,18 +130,13 @@ export const deleteCourse = async (
 
 export async function toggleInstructorStatus(
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<void> {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) {
-    throw new Error("Error loading current user.");
-  }
-  const profileId = userData.user.id;
-
   const { data: membership, error: membershipError } = await supabase
     .from("course_membership")
     .select("is_tutor")
-    .eq("profile_id", profileId)
+    .eq("profile_id", userId)
     .eq("course_id", courseId)
     .single();
 
@@ -170,7 +151,7 @@ export async function toggleInstructorStatus(
   const { error: updateError } = await supabase
     .from("course_membership")
     .update({ is_tutor: newIsTutorValue })
-    .eq("profile_id", profileId)
+    .eq("profile_id", userId)
     .eq("course_id", courseId)
     .single();
 
@@ -181,18 +162,13 @@ export async function toggleInstructorStatus(
 
 export const getCourseMembership = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<{ is_tutor: boolean }> => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-  const profileId = userData.user.id;
-
   const { data, error } = await supabase
     .from("course_membership")
     .select("is_tutor")
-    .eq("profile_id", profileId)
+    .eq("profile_id", userId)
     .eq("course_id", courseId)
     .single();
 

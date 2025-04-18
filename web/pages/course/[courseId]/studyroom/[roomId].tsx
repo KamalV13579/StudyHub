@@ -59,11 +59,25 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
   // Fetches the currently selected course
   const { data: course, error } = useQuery({
     queryKey: ["course", courseId],
-    queryFn: () => {
-      console.log("courseId", courseId);
-      if (!courseId) return Promise.resolve(null);
-      return getCourseInfo(supabase, courseId as string);
-    },
+    queryFn: () => getCourseInfo(supabase, courseId),
+    enabled: !!courseId,
+  });
+
+  const { data: studyRooms } = useQuery({
+    queryKey: ["studyRooms", courseId],
+    queryFn: () => getStudyRooms(supabase, courseId, user.id),
+    enabled: !!courseId,
+  });
+
+  const { data: resourceRepository } = useQuery({
+    queryKey: ["resourceRepository", courseId],
+    queryFn: () => getResourceRepository(supabase, courseId),
+    enabled: !!courseId,
+  });
+
+  const { data: forumRepository } = useQuery({
+    queryKey: ["forumRepository", courseId],
+    queryFn: () => getForumRepository(supabase, courseId),
     enabled: !!courseId,
   });
 
@@ -624,8 +638,7 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
 
   // TODO: Add reaction implementation
 
-  if (studyRoomLoading) return <div>Loading study room info...</div>;
-  if (error || !course) return <div>Error loading study room</div>;
+  if (!course) return <div>Loading course info...</div>;
 
   return (
     <>

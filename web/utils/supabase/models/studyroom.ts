@@ -6,3 +6,5 @@ export const StudyRoom = z.object({
   title: z.string(),
   creator_id: z.string(),
 });
+
+export type StudyRoom = z.infer<typeof StudyRoom>;

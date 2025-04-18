@@ -6,19 +6,14 @@ import { Profile } from "../models/profile";
 // Retrieves the list of study rooms the current user has joined.
 export const getStudyRooms = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<z.infer<typeof StudyRoom>[]> => {
-  // 1. Get the current authenticated user.
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
-  // 2. Fetch study room membership entries for the current user.
+  // Fetch study room membership entries for the current user.
   const { data: membershipData, error: membershipError } = await supabase
     .from("study_room_membership")
     .select("study_room_id")
-    .eq("profile_id", userData.user.id);
+    .eq("profile_id", userId);
 
   if (membershipError || !membershipData) {
     throw new Error(
@@ -50,14 +45,9 @@ export type JoinedStudyRoom = z.infer<typeof StudyRoom> & {
 export const joinStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<JoinedStudyRoom> => {
-  // Get the current user.
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
   // Look up the study room by its id.
   const { data: studyRoom, error: studyRoomError } = await supabase
     .from("study_room")
@@ -79,7 +69,7 @@ export const joinStudyRoom = async (
     await supabase
       .from("study_room_membership")
       .select("*")
-      .eq("profile_id", userData.user.id)
+      .eq("profile_id", userId)
       .eq("study_room_id", studyRoom.id)
       .maybeSingle();
 
@@ -99,7 +89,7 @@ export const joinStudyRoom = async (
     .from("study_room_membership")
     .insert([
       {
-        profile_id: userData.user.id,
+        profile_id: userId,
         study_room_id: studyRoom.id,
         is_owner: false, // If not creator, set false
       },
@@ -117,14 +107,9 @@ export const joinStudyRoom = async (
 export const createStudyRoom = async (
   supabase: SupabaseClient,
   roomTitle: string,
-  courseId: string
+  courseId: string,
+  userId: string
 ): Promise<z.infer<typeof StudyRoom>> => {
-  // Get the current authenticated user.
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData || !userData.user) {
-    throw new Error("Error loading current user.");
-  }
-
   // Insert a new study room record.
   const { data: roomData, error: roomError } = await supabase
     .from("study_room")
@@ -147,7 +132,7 @@ export const createStudyRoom = async (
     .insert([
       {
         study_room_id: roomData.id,
-        profile_id: userData.user.id,
+        profile_id: userId,
         is_owner: true, // Set the creator as the owner.
       },
     ]);
@@ -253,5 +238,22 @@ export const deleteStudyRoom = async (
 
   if (error) {
     throw new Error(`Error deleting study room: ${error.message}`);
+  }
+};
+
+export const leaveStudyRoom = async (
+  supabase: SupabaseClient,
+  studyRoomId: string,
+  userId: string
+): Promise<void> => {
+  // Delete the row in the study_room_membership table for this user and studyRoomId.
+  const { error: deleteError } = await supabase
+    .from("study_room_membership")
+    .delete()
+    .eq("study_room_id", studyRoomId)
+    .eq("profile_id", userId);
+
+  if (deleteError) {
+    throw new Error(`Error leaving study room: ${deleteError.message}`);
   }
 };

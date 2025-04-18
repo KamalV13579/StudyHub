@@ -1,26 +1,24 @@
-// components/studyroom/StudyRoomOptions.tsx
-import { Settings, Trash, Edit, Copy } from "lucide-react";
+import { Settings, Trash, Edit, Copy, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -32,27 +30,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
-import { deleteStudyRoom, updateStudyRoomName } from "@/utils/supabase/queries/studyroom";
+import { deleteStudyRoom, updateStudyRoomName, leaveStudyRoom, getStudyRooms } from "@/utils/supabase/queries/studyroom";
 import { z } from "zod";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
+import router from "next/router";
+import { User } from "@supabase/supabase-js";
+import { useSupabase } from "@/lib/supabase";
 
 type StudyRoomOptionsProps = {
   hovering?: boolean;
   studyRoom: z.infer<typeof StudyRoom>;
+  isOwner: boolean;
+  user: User;
 };
 
-export default function StudyRoomOptions({ hovering, studyRoom }: StudyRoomOptionsProps) {
-  const supabase = createSupabaseComponentClient();
+export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }: StudyRoomOptionsProps) {
   const queryClient = useQueryClient();
 
-  // Local state for dropdown, edit dialog, and delete alert
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState(studyRoom.title);
+  const supabase = useSupabase();
 
-  // Handler for updating the study room name
+  // Handler for updating the study room name (for owners).
   const handleUpdateName = async () => {
     if (newTitle.trim() === "") {
       toast.error("Title cannot be empty.");
@@ -63,7 +64,8 @@ export default function StudyRoomOptions({ hovering, studyRoom }: StudyRoomOptio
       toast.success("Study room name updated.");
       setEditDialogOpen(false);
       setDropdownOpen(false);
-      queryClient.refetchQueries({ queryKey: ["studyrooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRoom", studyRoom.id] });
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -73,18 +75,40 @@ export default function StudyRoomOptions({ hovering, studyRoom }: StudyRoomOptio
     }
   };
 
-  // Handler for deleting the study room (and its memberships)
+  // Handler for deleting the study room (for owners).
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
       await deleteStudyRoom(supabase, studyRoom.id);
       toast.success("Study room deleted.");
-      queryClient.refetchQueries({ queryKey: ["studyrooms", studyRoom.course_id] });
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+      const studyRooms = await getStudyRooms(supabase, studyRoom.course_id, user.id);
+      if (studyRooms.length === 0) {
+        router.push(`/course/${studyRoom.course_id}`);
+      } else {
+        router.push(`/course/${studyRoom.course_id}/studyroom/${studyRooms[0].id}`);
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
         toast.error("Error deleting study room.");
+      }
+    }
+  };
+
+  // Handler for leaving the study room (for non-owners).
+  const handleLeaveStudyRoom = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await leaveStudyRoom(supabase, studyRoom.id, user.id);
+      toast.success("Left study room.");
+      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error leaving study room.");
       }
     }
   };
@@ -113,61 +137,90 @@ export default function StudyRoomOptions({ hovering, studyRoom }: StudyRoomOptio
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {/* Edit Option opens the edit dialog */}
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditDialogOpen(true);
-            }}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Name
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {/* Copy Code Option */}
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopyCode(e);
-            }}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            Copy Code
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {/* Delete Option with AlertDialog */}
-          <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-            <AlertDialogTrigger asChild>
+          {isOwner ? (
+            <>
+              {/* Owner Options */}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  setDeleteAlertOpen(true);
+                  setEditDialogOpen(true);
                 }}
-                variant="destructive"
               >
-                <Trash className="mr-2 h-4 w-4" />
-                Delete
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Name
               </DropdownMenuItem>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete this study room?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Deleting this study room is permanent and cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeleteAlertOpen(false)}>
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyCode(e);
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Code
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAlertOpen(true);
+                    }}
+                    variant="destructive"
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete this study room?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Deleting this study room is permanent and cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setAlertOpen(false)}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Delete
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          ) : (
+            <>
+              {/* Non-Owner Options */}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopyCode(e);
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Code
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant = "destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLeaveStudyRoom(e);
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Leave Study Room
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
