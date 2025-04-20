@@ -28,7 +28,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { deleteMessage } from "@/utils/supabase/queries/message";
 import { deleteMessageFromCacheFn } from "@/utils/supabase/cache/message-cache";
-import { useRouter } from "";
 
 type MessageViewProps = {
   user: User;

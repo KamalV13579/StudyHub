@@ -46,12 +46,9 @@ import {
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
-import { InfiniteData } from "@tanstack/react-query";
-import { Message } from "@/utils/supabase/models/message";
 import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
-import { useDebouncedCallback } from "use-debounce";
 
 export type ChannelPageProps = { user: User };
 export default function CourseHomePage({

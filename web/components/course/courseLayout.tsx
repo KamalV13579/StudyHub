@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { User } from "@supabase/supabase-js";

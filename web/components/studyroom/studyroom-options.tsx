@@ -34,7 +34,6 @@ import {
   deleteStudyRoom,
   updateStudyRoomName,
   leaveStudyRoom,
-  getStudyRooms,
 } from "@/utils/supabase/queries/studyroom";
 import { z } from "zod";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
