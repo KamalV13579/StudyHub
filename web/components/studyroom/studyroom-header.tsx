@@ -31,7 +31,6 @@ export default function StudyRoomHeader({
   selectedStudyRoom,
   filterQuery,
   setFilterQuery,
-  onRename,
 }: StudyRoomHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 

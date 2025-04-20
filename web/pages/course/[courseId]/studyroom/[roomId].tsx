@@ -66,7 +66,7 @@ export default function CourseHomePage({
     setForceHeaderUpdate((prev) => prev + 1);
   };
 
-  const { data } = useQuery({
+  useQuery({
     queryKey: ["studyRooms", courseId, user.id],
     queryFn: () =>
       getStudyRoomsByMembership(supabase, user.id, courseId as string),
@@ -75,7 +75,7 @@ export default function CourseHomePage({
   });
 
   // Fetches the currently selected course
-  const { data: course, error } = useQuery({
+  const { data: course } = useQuery({
     queryKey: ["course", courseId],
     queryFn: () => getCourseInfo(supabase, courseId as string),
     enabled: !!courseId,
@@ -100,7 +100,7 @@ export default function CourseHomePage({
   });
 
   // Fetches the study rooms for current course
-  const { data: studyRoom, isLoading: studyRoomLoading } = useQuery({
+  const { data: studyRoom } = useQuery({
     queryKey: ["study_room", studyRoomId],
     queryFn: async () => {
       console.log("roomId", studyRoomId);

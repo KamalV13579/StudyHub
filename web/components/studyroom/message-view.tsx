@@ -34,6 +34,7 @@ type MessageViewProps = {
   supabase: SupabaseClient;
   channelMembers: z.infer<typeof Profile>[];
   message: z.infer<typeof Message>;
+  studyRoomId: string;
 };
 export default function MessageView({
   user,
@@ -55,7 +56,7 @@ export default function MessageView({
       await deleteMessage(supabase, message.id);
 
       toast.success("Message deleted");
-    } catch (error) {
+    } catch {
       // Revert by invalidating queries
       queryClient.invalidateQueries({ queryKey: ["messages", studyRoomId] });
       toast.error("Failed to delete message");
