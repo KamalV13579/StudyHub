@@ -30,7 +30,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { deleteStudyRoom, updateStudyRoomName, leaveStudyRoom, getStudyRooms } from "@/utils/supabase/queries/studyroom";
+import {
+  deleteStudyRoom,
+  updateStudyRoomName,
+  leaveStudyRoom,
+  getStudyRooms,
+} from "@/utils/supabase/queries/studyroom";
 import { z } from "zod";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import router from "next/router";
@@ -44,7 +49,12 @@ type StudyRoomOptionsProps = {
   user: User;
 };
 
-export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }: StudyRoomOptionsProps) {
+export default function StudyRoomOptions({
+  hovering,
+  studyRoom,
+  isOwner,
+  user,
+}: StudyRoomOptionsProps) {
   const queryClient = useQueryClient();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -64,7 +74,9 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
       toast.success("Study room name updated.");
       setEditDialogOpen(false);
       setDropdownOpen(false);
-      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+      queryClient.refetchQueries({
+        queryKey: ["studyRooms", studyRoom.course_id],
+      });
       queryClient.refetchQueries({ queryKey: ["studyRoom", studyRoom.id] });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -76,23 +88,19 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
   };
 
   // Handler for deleting the study room (for owners).
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteStudyRoom = async () => {
     try {
       await deleteStudyRoom(supabase, studyRoom.id);
       toast.success("Study room deleted.");
-      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
-      const studyRooms = await getStudyRooms(supabase, studyRoom.course_id, user.id);
-      if (studyRooms.length === 0) {
-        router.push(`/course/${studyRoom.course_id}`);
-      } else {
-        router.push(`/course/${studyRoom.course_id}/studyroom/${studyRooms[0].id}`);
-      }
-    } catch (error: unknown) {
+      queryClient.refetchQueries({
+        queryKey: ["studyRooms", studyRoom.course_id], // Ensure correct query key
+      });
+      router.push(`/course/${studyRoom.course_id}`); // Redirect after deletion
+    } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("Error deleting study room.");
+        toast.error("Error leaving study room.");
       }
     }
   };
@@ -103,7 +111,10 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
     try {
       await leaveStudyRoom(supabase, studyRoom.id, user.id);
       toast.success("Left study room.");
-      queryClient.refetchQueries({ queryKey: ["studyRooms", studyRoom.course_id] });
+      queryClient.refetchQueries({
+        queryKey: ["studyRooms", studyRoom.course_id],
+      });
+      router.push(`/course/${studyRoom.course_id}`); // Redirect after leaving
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -132,7 +143,11 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
     <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className={cn(hovering || dropdownOpen ? "visible" : "invisible")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(hovering || dropdownOpen ? "visible" : "invisible")}
+          >
             <Settings className="text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
@@ -182,14 +197,18 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
                       Are you sure you want to delete this study room?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Deleting this study room is permanent and cannot be undone.
+                      Deleting this study room is permanent and cannot be
+                      undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setAlertOpen(false)}>
                       Cancel
                     </AlertDialogCancel>
-                    <Button variant="destructive" onClick={handleDelete}>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteStudyRoom}
+                    >
                       Delete
                     </Button>
                   </AlertDialogFooter>
@@ -210,7 +229,7 @@ export default function StudyRoomOptions({ hovering, studyRoom, isOwner, user }:
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                variant = "destructive"
+                variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLeaveStudyRoom(e);
