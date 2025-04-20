@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
 
@@ -25,15 +25,22 @@ type StudyRoomHeaderProps = {
   selectedStudyRoom?: z.infer<typeof StudyRoom>;
   filterQuery: string;
   setFilterQuery: (query: string) => void;
+  onRename?: () => void;
 };
 export default function StudyRoomHeader({
   selectedStudyRoom,
   filterQuery,
   setFilterQuery,
+  onRename,
 }: StudyRoomHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Create states to handle selecting and uploading files.
+  useEffect(() => {
+    if (selectedStudyRoom?.title) {
+      setDropdownOpen(false); // Close dropdown if open
+    }
+  }, [selectedStudyRoom?.title]);
 
   return (
     <header className="bg-sidebar flex flex-row shrink-0 items-center gap-2 border-b z-50 h-14">

@@ -72,12 +72,19 @@ export default function StudyRoomOptions({
     try {
       await updateStudyRoomName(supabase, studyRoom.id, newTitle);
       toast.success("Study room name updated.");
-      setEditDialogOpen(false);
-      setDropdownOpen(false);
+
+      // Add this invalidation
+      queryClient.invalidateQueries({
+        queryKey: ["study_room", studyRoom.id],
+        exact: true,
+      });
+
+      // Keep existing invalidations
       queryClient.refetchQueries({
         queryKey: ["studyRooms", studyRoom.course_id],
       });
-      queryClient.refetchQueries({ queryKey: ["studyRoom", studyRoom.id] });
+
+      setEditDialogOpen(false);
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);

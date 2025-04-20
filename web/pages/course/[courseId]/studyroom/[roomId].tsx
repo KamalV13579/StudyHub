@@ -59,9 +59,14 @@ export default function CourseHomePage({
 }: ChannelPageProps & { initialStudyRooms: StudyRoom[] }) {
   const router = useRouter();
   const { courseId, roomId: studyRoomId } = router.query;
+  const [forceHeaderUpdate, setForceHeaderUpdate] = useState(0);
   const supabase = createSupabaseComponentClient();
 
   const queryUtils = useQueryClient();
+
+  const handleUpdateNameSuccess = () => {
+    setForceHeaderUpdate((prev) => prev + 1);
+  };
 
   const { data } = useQuery({
     queryKey: ["studyRooms", courseId, user.id],
@@ -680,10 +685,12 @@ export default function CourseHomePage({
           </div>
           <div className="ml-[70px] flex flex-col w-full h-screen max-h-screen overflow-hidden">
             <StudyRoomHeader
+              key={forceHeaderUpdate}
               user={user}
+              selectedStudyRoom={studyRoom ?? undefined}
               filterQuery={filterQuery}
               setFilterQuery={setFilterQuery}
-              selectedStudyRoom={studyRoom ?? undefined}
+              onRename={handleUpdateNameSuccess}
             />
             <div className="flex flex-row grow">
               <div className="flex flex-col grow max-h-[calc(100vh-56px)]">
