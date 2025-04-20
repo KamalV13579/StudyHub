@@ -37,6 +37,7 @@ type MessageViewProps = {
   message: z.infer<typeof Message>;
 };
 export default function MessageView({
+  user,
   channelMembers,
   message,
   supabase,
@@ -92,67 +93,68 @@ export default function MessageView({
               })}
           </p>
           <div className="ml-auto flex flex-row items-center gap-2">
-            <Dialog
-              open={deleteDialogOpen}
-              onOpenChange={(isOpen) => setDeleteDialogOpen(isOpen)}
-            >
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className={cn(
-                    "bg-accent border-sidebar hover:bg-background",
-                    isHovering ? "visible" : "invisible"
-                  )}
-                >
-                  <X />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-background rounded-lg border p-6 shadow-lg">
-                <DialogHeader className="space-y-4">
-                  <h3 className="text-lg font-semibold">Delete Message</h3>
-                  <DialogDescription className="text-muted-foreground">
-                    Are you sure you want to delete this message?
-                  </DialogDescription>
-                </DialogHeader>
-
-                {/* Message preview card */}
-                <div className="my-4 p-4 bg-muted/50 rounded-lg border">
-                  <div className="flex items-center gap-3 mb-2">
-                    <ProfileAvatar profile={message.author} />
-                    <div>
-                      <p className="font-medium">{message.author.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {message.created_at &&
-                          new Date(message.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  {message.attachment_url && (
-                    <Image
-                      src={message.attachment_url}
-                      alt="Attachment"
-                      width={200}
-                      height={200}
-                      className="rounded-md mb-2"
-                    />
-                  )}
-                  <p className="text-sm">{message.content}</p>
-                </div>
-
-                <DialogFooter className="gap-2 sm:gap-0 space-x-2">
+            {message.author.id === user.id && (
+              <Dialog
+                open={deleteDialogOpen}
+                onOpenChange={(isOpen) => setDeleteDialogOpen(isOpen)}
+              >
+                <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    onClick={() => setDeleteDialogOpen(false)}
+                    size="icon"
+                    className={cn(
+                      "bg-accent border-sidebar hover:bg-background",
+                      isHovering ? "visible" : "invisible"
+                    )}
                   >
-                    Cancel
+                    <X />
                   </Button>
-                  <Button variant="destructive" onClick={handleDelete}>
-                    Delete
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent className="bg-background rounded-lg border p-6 shadow-lg">
+                  <DialogHeader className="space-y-4">
+                    <h3 className="text-lg font-semibold">Delete Message</h3>
+                    <DialogDescription className="text-muted-foreground">
+                      Are you sure you want to delete this message?
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {/* Message preview card */}
+                  <div className="my-4 p-4 bg-muted/50 rounded-lg border">
+                    <div className="flex items-center gap-3 mb-2">
+                      <ProfileAvatar profile={message.author} />
+                      <div>
+                        <p className="font-medium">{message.author.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {message.created_at &&
+                            new Date(message.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    {message.attachment_url && (
+                      <Image
+                        src={message.attachment_url}
+                        alt="Attachment"
+                        width={200}
+                        height={200}
+                        className="rounded-md mb-2"
+                      />
+                    )}
+                    <p className="text-sm">{message.content}</p>
+                  </div>
+                  <DialogFooter className="gap-2 sm:gap-0 space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
         {message.attachment_url && (

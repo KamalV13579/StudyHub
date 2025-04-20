@@ -51,6 +51,7 @@ import { Message } from "@/utils/supabase/models/message";
 import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
+import { useDebouncedCallback } from "use-debounce";
 
 export type ChannelPageProps = { user: User };
 export default function CourseHomePage({
@@ -191,10 +192,8 @@ export default function CourseHomePage({
   );
 
   // Realtime for messages
-
-  // Replace your existing real-time message handler with this more robust version:
   useEffect(() => {
-    if (!studyRoomId || !user) return;
+    if (!studyRoomId) return;
 
     const messageSubscription = supabase
       .channel("messages")
@@ -204,171 +203,42 @@ export default function CourseHomePage({
           event: "INSERT",
           schema: "public",
           table: "study_room_message",
-          filter: `study_room_id.eq.${studyRoomId}`,
+          filter: `study_room_id=eq.${studyRoomId}`,
         },
-        async (payload) => {
-          try {
-            // Skip messages that we've already optimistically added
-            if (payload.new.author_id === user.id) {
-              // Just ensure the message is in the correct format
-              queryUtils.setQueryData(
-                ["messages", studyRoomId],
-                (
-                  oldData: InfiniteData<z.infer<typeof Message>[]> | undefined
-                ) => {
-                  if (!oldData) return oldData;
-
-                  // Check if message already exists to prevent duplicates
-                  const messageExists = oldData.pages.some((page) =>
-                    page.some((msg) => msg.id === payload.new.id)
-                  );
-
-                  if (messageExists) return oldData;
-
-                  // If not, we need to add it - which shouldn't normally happen
-                  console.warn(
-                    "Message from current user not found in cache, adding it now"
-                  );
-
-                  return {
-                    pageParams: oldData.pageParams,
-                    pages: oldData.pages.map((page, index) =>
-                      index === 0
-                        ? [
-                            Message.parse({
-                              id: payload.new.id,
-                              content: payload.new.content,
-                              author_id: payload.new.author_id,
-                              study_room_id: payload.new.study_room_id,
-                              attachment_url: payload.new.attachment_url,
-                              created_at: new Date(payload.new.created_at),
-                              author: members?.find(
-                                (m) => m.id === user.id
-                              ) || {
-                                id: user.id,
-                                name: "Current User",
-                                handle: "current-user",
-                                avatar_url: null,
-                                major: "Undeclared",
-                              },
-                            }),
-                            ...page,
-                          ]
-                        : page
-                    ),
-                  };
-                }
-              );
-              return;
-            }
-
-            // For messages from other users, fetch author info if needed
-            let authorData = members?.find(
-              (m) => m.id === payload.new.author_id
-            );
-
-            if (!authorData) {
-              try {
-                const { data: fetchedAuthor, error } = await supabase
-                  .from("profile")
-                  .select("*")
-                  .eq("id", payload.new.author_id)
-                  .single();
-
-                if (error) {
-                  console.error("Error fetching author:", error);
-                  authorData = {
-                    id: payload.new.author_id,
-                    name: "Unknown User",
-                    handle: "unknown",
-                    avatar_url: null,
-                    major: "Undeclared",
-                  };
-                } else {
-                  authorData = fetchedAuthor;
-
-                  // Update members cache for future use
-                  if (members) {
-                    queryUtils.setQueryData(
-                      ["members", studyRoomId],
-                      [...members, fetchedAuthor]
-                    );
-                  }
-                }
-              } catch (fetchError) {
-                console.error("Failed to fetch author info:", fetchError);
-                // Use fallback author data
-                authorData = {
-                  id: payload.new.author_id,
-                  name: "Unknown User",
-                  handle: "unknown",
-                  avatar_url: null,
-                  major: "Undeclared",
-                };
-              }
-            }
-
-            // Add the message to the cache with proper error handling
-            queryUtils.setQueryData(
-              ["messages", studyRoomId],
-              (
-                oldData: InfiniteData<z.infer<typeof Message>[]> | undefined
-              ) => {
-                if (!oldData) {
-                  // If there's no existing data, create a new structure
-                  try {
-                    const newMessage = Message.parse({
-                      id: payload.new.id,
-                      content: payload.new.content,
-                      author: authorData,
-                      attachment_url: payload.new.attachment_url,
-                      created_at: new Date(payload.new.created_at),
-                    });
-
-                    return {
-                      pageParams: [0],
-                      pages: [[newMessage]],
-                    };
-                  } catch (parseError) {
-                    console.error("Failed to parse message:", parseError);
-                    return undefined;
-                  }
-                }
-
-                // Check if message already exists to prevent duplicates
-                const messageExists = oldData.pages.some((page) =>
-                  page.some((msg) => msg.id === payload.new.id)
-                );
-
-                if (messageExists) return oldData;
-
-                // Try to safely parse and add the new message
-                try {
-                  const newMessage = Message.parse({
-                    id: payload.new.id,
-                    content: payload.new.content,
-                    author: authorData,
-                    attachment_url: payload.new.attachment_url,
-                    created_at: new Date(payload.new.created_at),
-                  });
-
-                  // Add the message at the top of the first page
-                  return {
-                    pageParams: oldData.pageParams,
-                    pages: oldData.pages.map((page, index) =>
-                      index === 0 ? [newMessage, ...page] : page
-                    ),
-                  };
-                } catch (parseError) {
-                  console.error("Failed to parse message:", parseError);
-                  return oldData; // Return unchanged data on error
-                }
-              }
-            );
-          } catch (error) {
-            console.error("Error handling real-time message:", error);
-            // Continue execution despite errors
+        (payload) => {
+          const newMessage = {
+            id: payload.new.id,
+            content: payload.new.content,
+            author_id: payload.new.author_id,
+            channel_id: payload.new.channel_id,
+            attachment_url: payload.new.attachment_url,
+            created_at: new Date(payload.new.created_at),
+            study_room_id: studyRoomId as string,
+          };
+          if (newMessage.author_id !== user.id) {
+            addMessageToCache(newMessage);
           }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "study_room_message",
+          filter: `study_room_id=eq.${studyRoomId}`,
+        },
+        (payload) => {
+          const updatedMessage = {
+            id: payload.new.id,
+            content: payload.new.content,
+            author_id: payload.new.author_id,
+            channel_id: payload.new.channel_id,
+            attachment_url: payload.new.attachment_url,
+            created_at: new Date(payload.new.created_at),
+            study_room_id: studyRoomId as string,
+          };
+          updateMessageInCache(updatedMessage);
         }
       )
       .on(
@@ -377,18 +247,26 @@ export default function CourseHomePage({
           event: "DELETE",
           schema: "public",
           table: "study_room_message",
-          filter: `study_room_id.eq.${studyRoomId}`,
+          filter: `study_room_id=eq.${studyRoomId}`,
         },
         (payload) => {
-          deleteMessageFromCacheFn(queryUtils, studyRoomId)(payload.old.id);
+          deleteMessageFromCache(payload.old.id);
         }
       )
       .subscribe();
 
     return () => {
-      messageSubscription.unsubscribe();
+      supabase.removeChannel(messageSubscription);
     };
-  }, [studyRoomId, user, members, queryUtils, supabase]);
+  }, [
+    studyRoomId,
+    supabase,
+    user.id,
+    addMessageToCache,
+    updateMessageInCache,
+    deleteMessageFromCache,
+  ]);
+
   // Storing online users
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
