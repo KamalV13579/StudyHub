@@ -89,17 +89,17 @@ export default function CourseHomePage({
     enabled: !!courseId,
   });
 
-  const { data: resourceRepository } = useQuery({
-    queryKey: ["resourceRepository", courseId],
-    queryFn: () => getResourceRepository(supabase, courseId),
-    enabled: !!courseId,
-  });
+  // const { data: resourceRepository } = useQuery({
+  //   queryKey: ["resourceRepository", courseId],
+  //   queryFn: () => getResourceRepository(supabase, courseId),
+  //   enabled: !!courseId,
+  // });
 
-  const { data: forumRepository } = useQuery({
-    queryKey: ["forumRepository", courseId],
-    queryFn: () => getForumRepository(supabase, courseId),
-    enabled: !!courseId,
-  });
+  // const { data: forumRepository } = useQuery({
+  //   queryKey: ["forumRepository", courseId],
+  //   queryFn: () => getForumRepository(supabase, courseId),
+  //   enabled: !!courseId,
+  // });
 
   // Fetches the study rooms for current course
   const { data: studyRoom } = useQuery({
