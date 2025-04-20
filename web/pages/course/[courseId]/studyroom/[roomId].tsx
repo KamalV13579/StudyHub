@@ -49,6 +49,8 @@ import { toast } from "sonner";
 import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
+import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
+import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 
 export type ChannelPageProps = { user: User };
 export default function CourseHomePage({
@@ -89,17 +91,17 @@ export default function CourseHomePage({
     enabled: !!courseId,
   });
 
-  // const { data: resourceRepository } = useQuery({
-  //   queryKey: ["resourceRepository", courseId],
-  //   queryFn: () => getResourceRepository(supabase, courseId),
-  //   enabled: !!courseId,
-  // });
+  const { data: resourceRepository } = useQuery({
+    queryKey: ["resourceRepository", courseId],
+    queryFn: () => getResourceRepository(supabase, courseId as string),
+    enabled: !!courseId,
+  });
 
-  // const { data: forumRepository } = useQuery({
-  //   queryKey: ["forumRepository", courseId],
-  //   queryFn: () => getForumRepository(supabase, courseId),
-  //   enabled: !!courseId,
-  // });
+  const { data: forumRepository } = useQuery({
+    queryKey: ["forumRepository", courseId],
+    queryFn: () => getForumRepository(supabase, courseId as string),
+    enabled: !!courseId,
+  });
 
   // Fetches the study rooms for current course
   const { data: studyRoom } = useQuery({
@@ -556,8 +558,10 @@ export default function CourseHomePage({
               user={user}
               course={course}
               studyRooms={studyRooms ?? []}
-              resourceRepository={resourceRepository}
-              forumRepository={forumRepository}
+              resourceRepository={
+                resourceRepository ?? { id: "", course_id: "" }
+              }
+              forumRepository={forumRepository ?? { id: "", course_id: "" }}
             />
           </div>
           <div className="ml-[70px] flex flex-col w-full h-screen max-h-screen overflow-hidden">
