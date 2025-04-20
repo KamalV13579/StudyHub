@@ -254,3 +254,19 @@ export const leaveStudyRoom = async (
     throw new Error(`Error leaving study room: ${deleteError.message}`);
   }
 };
+
+// In utils/supabase/queries/studyroom.ts
+export const getStudyRoomsByMembership = async (
+  supabase: SupabaseClient,
+  userId: string,
+  courseId: string
+): Promise<StudyRoom[]> => {
+  const { data, error } = await supabase
+    .from("study_room_members")
+    .select("study_rooms(*)")
+    .eq("user_id", userId)
+    .eq("study_rooms.course_id", courseId);
+
+  if (error) throw error;
+  return data.flatMap((d) => d.study_rooms) as StudyRoom[];
+};

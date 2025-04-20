@@ -27,7 +27,9 @@ import { cn } from "@/lib/utils";
 import { User } from "@supabase/supabase-js";
 import {
   getStudyRoom,
+  getStudyRooms,
   getStudyRoomMembers,
+  getStudyRoomsByMembership,
 } from "@/utils/supabase/queries/studyroom";
 import StudyRoomHeader from "@/components/studyroom/studyroom-header";
 import { DraftMessage } from "@/utils/supabase/models/message";
@@ -48,25 +50,37 @@ import { InfiniteData } from "@tanstack/react-query";
 import { Message } from "@/utils/supabase/models/message";
 import { StudyRoomUserSidebar } from "@/components/studyroom/studyroom-user-bar";
 import { CourseSidebar } from "@/components/course/sidebar";
+import { StudyRoom } from "@/utils/supabase/models/studyroom";
 
 export type ChannelPageProps = { user: User };
-export default function CourseHomePage({ user }: ChannelPageProps) {
+export default function CourseHomePage({
+  user,
+  initialStudyRooms,
+}: ChannelPageProps & { initialStudyRooms: StudyRoom[] }) {
   const router = useRouter();
   const { courseId, roomId: studyRoomId } = router.query;
   const supabase = createSupabaseComponentClient();
 
   const queryUtils = useQueryClient();
 
+  const { data } = useQuery({
+    queryKey: ["studyRooms", courseId, user.id],
+    queryFn: () =>
+      getStudyRoomsByMembership(supabase, user.id, courseId as string),
+    initialData: initialStudyRooms, // Use server-fetched data
+    enabled: !!courseId,
+  });
+
   // Fetches the currently selected course
   const { data: course, error } = useQuery({
     queryKey: ["course", courseId],
-    queryFn: () => getCourseInfo(supabase, courseId),
+    queryFn: () => getCourseInfo(supabase, courseId as string),
     enabled: !!courseId,
   });
 
   const { data: studyRooms } = useQuery({
     queryKey: ["studyRooms", courseId],
-    queryFn: () => getStudyRooms(supabase, courseId, user.id),
+    queryFn: () => getStudyRooms(supabase, courseId as string, user.id),
     enabled: !!courseId,
   });
 
@@ -838,27 +852,31 @@ export default function CourseHomePage({ user }: ChannelPageProps) {
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  // Create the supabase context that works specifically on the server and
-  // pass in the context.
   const supabase = createSupabaseServerClient(context);
+  const { data: userData } = await supabase.auth.getUser();
 
-  // Attempt to load the user data
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-
-  // If the user is not logged in, redirect them to the login page.
-  if (userError || !userData) {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
+  if (!userData?.user) {
+    return { redirect: { destination: "/login", permanent: false } };
   }
 
-  // Return the user and profile as props.
+  // Add study rooms fetching
+  const courseId = context.params?.courseId as string;
+  let studyRooms: StudyRoom[] = [];
+
+  try {
+    studyRooms = await getStudyRoomsByMembership(
+      supabase,
+      userData.user.id,
+      courseId
+    );
+  } catch (error) {
+    console.error("Error fetching study rooms:", error);
+  }
+
   return {
     props: {
       user: userData.user,
+      initialStudyRooms: studyRooms, // Add this
     },
   };
 }
