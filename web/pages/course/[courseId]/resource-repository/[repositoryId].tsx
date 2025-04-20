@@ -15,7 +15,9 @@ type ResourceRepositoryHomePageProps = {
   user: User;
 };
 
-export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryHomePageProps) {
+export default function ResourceRepositoryHomePage({
+  user,
+}: ResourceRepositoryHomePageProps) {
   const router = useRouter();
   const courseId = router.query.courseId as string;
   const supabase = useSupabase();
@@ -43,7 +45,7 @@ export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryH
     queryFn: () => getForumRepository(supabase, courseId),
     enabled: !!courseId,
   });
-  
+
   if (!course) return <div>Loading course info...</div>;
   if (!resourceRepository) return <div>Loading resource repository...</div>;
 
@@ -56,7 +58,10 @@ export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryH
       forumRepository={forumRepository!}
     >
       <ResourceRepositoryLayout>
-        <h1>Welcome to {course.course_code} - {course.course_name} Resource Repository: {resourceRepository.id}!</h1>
+        <h1>
+          Welcome to {course.course_code} - {course.course_name} Resource
+          Repository: {resourceRepository.id}!
+        </h1>
       </ResourceRepositoryLayout>
     </CourseLayout>
   );

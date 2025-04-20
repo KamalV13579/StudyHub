@@ -66,13 +66,15 @@ export default function CourseHomePage({
     setForceHeaderUpdate((prev) => prev + 1);
   };
 
-  useQuery({
+  const { data } = useQuery({
     queryKey: ["studyRooms", courseId, user.id],
     queryFn: () =>
       getStudyRoomsByMembership(supabase, user.id, courseId as string),
     initialData: initialStudyRooms, // Use server-fetched data
     enabled: !!courseId,
   });
+
+  console.log(data);
 
   // Fetches the currently selected course
   const { data: course } = useQuery({
@@ -553,7 +555,7 @@ export default function CourseHomePage({
             <CourseSidebar
               user={user}
               course={course}
-              studyRooms={studyRooms}
+              studyRooms={studyRooms ?? []}
               resourceRepository={resourceRepository}
               forumRepository={forumRepository}
             />
@@ -601,6 +603,7 @@ export default function CourseHomePage({
                                 channelMembers={members ?? []}
                                 message={message}
                                 supabase={supabase}
+                                studyRoomId={studyRoomId as string}
                               />
                             </Fragment>
                           );
@@ -636,7 +639,7 @@ export default function CourseHomePage({
                                     channelMembers={members ?? []}
                                     message={message}
                                     supabase={supabase}
-                                    studyRoomId={studyRoomId}
+                                    studyRoomId={studyRoomId as string}
                                   />
                                 </Fragment>
                               );

@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { CourseSidebar } from "@/components/course/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { User } from "@supabase/supabase-js";
@@ -7,6 +8,7 @@ import { ResourceRepository } from "@/utils/supabase/models/resource-repository"
 import { ForumRepository } from "@/utils/supabase/models/forum-repository";
 
 type CourseLayoutProps = {
+  children: ReactNode;
   user: User;
   course: Course;
   studyRooms: StudyRoom[];
@@ -15,6 +17,7 @@ type CourseLayoutProps = {
 };
 
 export function CourseLayout({
+  children,
   user,
   course,
   studyRooms,
@@ -39,6 +42,8 @@ export function CourseLayout({
             forumRepository={forumRepository}
           />
         </div>
+
+        <main className="flex-1 p-4 overflow-y-auto">{children}</main>
       </div>
     </SidebarProvider>
   );
