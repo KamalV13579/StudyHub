@@ -73,7 +73,7 @@ export default function StudyRoomSidebarItem({
       <div className="ml-auto">
         <StudyRoomOptions
           studyRoom={studyRoom}
-          hovering={currentStudyRoomId === studyRoom.id}
+          hovering={isHovering}
           isOwner={isOwner}
           user={user}
         />
