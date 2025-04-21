@@ -46,7 +46,7 @@ export default function ResourceRepositoryHomePage({
     enabled: !!courseId,
   });
 
-  const { data: resources, isLoading: loadingResources } = useQuery({
+  const { data: resources } = useQuery({
     queryKey: ["resources", resourceRepository?.id],
     queryFn: () => getResourcesForRepository(supabase, resourceRepository!.id),
     enabled: !!resourceRepository?.id,
