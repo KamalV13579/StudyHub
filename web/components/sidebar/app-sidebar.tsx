@@ -153,6 +153,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
                 checked={isInstructor}
                 onChange={(e) => setIsInstructor(e.target.checked)}
                 className="h-4 w-4"
+                title="Mark as Instructor or Tutor"
               />
               <Label htmlFor="instructor" className="text-sm">
                 Mark as Instructor/Tutor

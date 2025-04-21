@@ -1,6 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import { z } from "zod";
+import { Profile } from "../models/profile";
 
 // Retrieves the list of study rooms the current user has joined.
 export const getStudyRooms = async (
@@ -149,17 +150,63 @@ export const getStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string
 ): Promise<z.infer<typeof StudyRoom>> => {
+  // Fetch study room with creator information
   const { data, error } = await supabase
     .from("study_room")
-    .select("*")
+    .select(
+      `
+      *,
+      creator:study_room_membership!inner(
+        profile_id
+      )
+    `
+    )
     .eq("id", studyRoomId)
+    .eq("study_room_membership.is_owner", true)
     .single();
 
   if (error || !data) {
     throw new Error(`Error fetching study room: ${error?.message}`);
   }
 
-  return data as z.infer<typeof StudyRoom>;
+  // Map the result to include creator_id
+  return {
+    id: data.id,
+    course_id: data.course_id,
+    title: data.title,
+    creator_id: data.creator[0]?.profile_id,
+  } as z.infer<typeof StudyRoom>;
+};
+
+export const getStudyRoomMembers = async (
+  supabase: SupabaseClient,
+  studyRoomId: string
+) => {
+  const query = supabase
+    .from("study_room_membership")
+    .select(
+      `
+        profile:profile!profile_id ( id, name, handle, avatar_url, major, created_at),
+        is_owner
+      `
+    )
+    .eq("study_room_id", studyRoomId);
+
+  const { data: studyRoomMembers, error: studyRoomMembersError } = await query;
+
+  if (studyRoomMembersError) {
+    throw new Error(
+      `Error feetching server members: ${studyRoomMembersError.message}`
+    );
+  }
+
+  const members = z
+    .object({
+      profile: Profile,
+    })
+    .array()
+    .parse(studyRoomMembers);
+  return members.map((member) => member.profile);
 };
 
 export const updateStudyRoomName = async (
@@ -206,4 +253,20 @@ export const leaveStudyRoom = async (
   if (deleteError) {
     throw new Error(`Error leaving study room: ${deleteError.message}`);
   }
+};
+
+// In utils/supabase/queries/studyroom.ts
+export const getStudyRoomsByMembership = async (
+  supabase: SupabaseClient,
+  userId: string,
+  courseId: string
+): Promise<StudyRoom[]> => {
+  const { data, error } = await supabase
+    .from("study_room_members")
+    .select("study_rooms(*)")
+    .eq("user_id", userId)
+    .eq("study_rooms.course_id", courseId);
+
+  if (error) throw error;
+  return data.flatMap((d) => d.study_rooms) as StudyRoom[];
 };
