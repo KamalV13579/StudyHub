@@ -48,7 +48,9 @@ export default function ProfilePopover({
         <div className="flex flex-col w-full">
           <ProfileAvatar profile={profile} />
           <div className="flex flex-col w-full mt-4">
-            <p className="font-bold text-lg">{profile?.name}</p>
+            <p className="font-bold text-lg truncate max-w-[100px]">
+              {profile?.name}
+            </p>
             <p className="text-muted-foreground">@{profile?.handle}</p>
           </div>
         </div>
