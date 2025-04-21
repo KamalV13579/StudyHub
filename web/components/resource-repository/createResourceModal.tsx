@@ -62,9 +62,13 @@ export function CreateResourceModal({ open, setOpen, user, repositoryId }: Creat
       // Refresh the resources
       queryClient.invalidateQueries({ queryKey: ["resources", repositoryId] });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      toast.error(error.message || "Failed to create resource.");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to create resource.");
+      }
     } finally {
       setUploading(false);
     }
