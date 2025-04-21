@@ -7,12 +7,12 @@ import { useQuery } from "@tanstack/react-query";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
 
-
 type StudyRoomSidebarItemProps = {
   studyRoom: {
     id: string;
     title: string;
     course_id: string;
+    creator_id: string;
   };
   selectedStudyRoomId?: string;
   courseId: string;
@@ -64,16 +64,16 @@ export default function StudyRoomSidebarItem({
       <div
         className="flex items-center gap-2 flex-grow"
         onClick={() => {
-          router.push(`/course/${courseId}/studyroom/${studyRoom.id}`)
+          router.push(`/course/${courseId}/studyroom/${studyRoom.id}`);
         }}
       >
         <NotebookPen className="h-4 w-4" />
-        {studyRoom.title}
+        <div className="truncate w-[70px]">{studyRoom.title}</div>
       </div>
       <div className="ml-auto">
         <StudyRoomOptions
           studyRoom={studyRoom}
-          hovering={currentStudyRoomId === studyRoom.id}
+          hovering={isHovering}
           isOwner={isOwner}
           user={user}
         />

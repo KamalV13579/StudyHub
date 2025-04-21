@@ -15,7 +15,9 @@ type ResourceRepositoryHomePageProps = {
   user: User;
 };
 
-export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryHomePageProps) {
+export default function ResourceRepositoryHomePage({
+  user,
+}: ResourceRepositoryHomePageProps) {
   const router = useRouter();
   const courseId = router.query.courseId as string;
   const supabase = useSupabase();
