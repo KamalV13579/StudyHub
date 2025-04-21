@@ -10,6 +10,7 @@ type ResourceCardProps = {
     description: string;
     uploaded_by: string;
     vote_count?: number;
+    handle?: string;
   };
 };
 
@@ -32,14 +33,12 @@ export function ResourceCard({ resource }: ResourceCardProps) {
   return (
     <Card
       onClick={handleCardClick}
-      className="w-full max-w-2xl p-6 hover:shadow-lg cursor-pointer flex flex-col justify-between relative"
+      className="w-full p-6 hover:shadow-lg cursor-pointer flex flex-col justify-between relative"
     >
-      {/* Top Right Username */}
       <div className="absolute top-4 right-4 text-xs text-muted-foreground">
-        Uploaded by {resource.uploaded_by}
+        Uploaded by {resource.handle}
       </div>
 
-      {/* Title and Description */}
       <div className="flex flex-col gap-2">
         <h2 className="text-xl font-semibold">{resource.title}</h2>
         <p className="text-muted-foreground text-sm">
@@ -49,7 +48,6 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         </p>
       </div>
 
-      {/* Bottom Vote Section */}
       <div className="flex items-center justify-center gap-4 mt-6">
         <Button variant="ghost" size="icon" onClick={handleUpvote}>
           <ArrowUp className="h-5 w-5" />

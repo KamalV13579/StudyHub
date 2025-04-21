@@ -9,6 +9,7 @@ export const Resource = z.object({
   file_url: z.string().nullable(),
   created_at: z.string(),
   repository_id: z.string(),
+  handle: z.string(),
 });
 
 export type Resource = z.infer<typeof Resource>;

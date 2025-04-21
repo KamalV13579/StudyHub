@@ -30,8 +30,7 @@ export function ResourceRepositoryLayout({ resources, user, repositoryId }: Reso
   );
 
   return (
-    <div className="flex flex-col w-full max-w-6xl mx-auto px-6 gap-8">
-      {/* Top bar: Search + Create */}
+    <div className="flex flex-col w-full px-6 m-2">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Input
           placeholder="Search resources..."
@@ -44,8 +43,7 @@ export function ResourceRepositoryLayout({ resources, user, repositoryId }: Reso
         </Button>
       </div>
 
-      {/* Resources feed */}
-      <div className="flex flex-col items-center gap-6 mt-6">
+      <div className="flex flex-col w-full gap-6 mt-6">
         {filteredResources.length > 0 ? (
           filteredResources.map((resource) => (
             <ResourceCard key={resource.id} resource={resource} />
@@ -57,7 +55,6 @@ export function ResourceRepositoryLayout({ resources, user, repositoryId }: Reso
         )}
       </div>
 
-      {/* Create Resource Modal */}
       <CreateResourceModal
         open={modalOpen}
         setOpen={setModalOpen}

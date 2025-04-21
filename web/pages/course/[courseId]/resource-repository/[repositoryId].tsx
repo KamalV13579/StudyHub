@@ -10,6 +10,7 @@ import { ResourceRepositoryLayout } from "@/components/resource-repository/resou
 import { User } from "@supabase/supabase-js";
 import { GetServerSidePropsContext } from "next";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
+import { CourseSidebar } from "@/components/course/sidebar";
 
 type ResourceRepositoryHomePageProps = {
   user: User;
@@ -34,7 +35,7 @@ export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryH
 
   const { data: resourceRepository, isLoading: loadingRepository } = useQuery({
     queryKey: ["resourceRepository", courseId],
-    queryFn: () => getResourceRepository(supabase, courseId), // based on courseId!
+    queryFn: () => getResourceRepository(supabase, courseId),
     enabled: !!courseId,
   });
 
@@ -59,18 +60,25 @@ export default function ResourceRepositoryHomePage({ user }: ResourceRepositoryH
   }
 
   return (
-    <CourseLayout
-    user={user}
-    course={course}
-    studyRooms={studyRooms ?? []}
-    resourceRepository={resourceRepository}
-    forumRepository={forumRepository!}
-  >
-<ResourceRepositoryLayout
-  resources={resources ?? []}
-  user={user}
-  repositoryId={resourceRepository.id}
-/>    </CourseLayout>
+    <div className="flex h-screen">
+      <div className="w-60 h-full flex-shrink-0 border-r overflow-y-auto">
+        <CourseSidebar
+          user={user}
+          course={course}
+          studyRooms={studyRooms ?? []}
+          resourceRepository={resourceRepository}
+          forumRepository={forumRepository!}
+        />
+      </div>
+
+      <main className="flex-1 min-w-0 overflow-auto">
+        <ResourceRepositoryLayout
+          resources={resources ?? []}
+          user={user}
+          repositoryId={resourceRepository.id}
+        />
+      </main>
+    </div>
   );
 }
 

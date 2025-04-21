@@ -44,14 +44,32 @@ export const getResourcesForRepository = async (
   repositoryId: string
 ): Promise<z.infer<typeof Resource>[]> => {
   const { data, error } = await supabase
-    .from("resource")
-    .select("*")
-    .eq("repository_id", repositoryId)
-    .order("created_at", { ascending: false });
+  .from("resource")
+  .select(`
+    id,
+    title,
+    description,
+    type,
+    uploaded_by,
+    file_url,
+    created_at,
+    repository_id,
+    profiles:uploaded_by (
+      handle
+    )
+  `)
+  .eq("repository_id", repositoryId)
+  .order("created_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
-  console.log(data)
-  return Resource.array().parse(data);
+if (error) throw new Error(error.message);
+if (!data) return [];
+
+// flatten profiles.handle onto the root object
+const withHandle = data.map((r: any) => ({
+  ...r,
+  handle: r.profiles?.handle ?? null,
+}));
+return Resource.array().parse(withHandle);
 };
 
 export const getResourceDetail = async (
@@ -59,15 +77,34 @@ export const getResourceDetail = async (
   resourceId: string
 ): Promise<z.infer<typeof Resource>> => {
   const { data, error } = await supabase
-    .from("resource")
-    .select("*")
-    .eq("id", resourceId)
-    .single();
+  .from("resource")
+  .select(`
+    id,
+    title,
+    description,
+    type,
+    uploaded_by,
+    file_url,
+    created_at,
+    repository_id,
+    profiles:uploaded_by (
+      handle
+    )
+  `)
+  .eq("id", resourceId)
 
-  if (error || !data) {
-    throw new Error(error?.message || "Resource not found");
-  }
-  return Resource.parse(data);
+if (error) throw new Error(error.message);
+
+const withHandle = data.map((r: any) => ({
+  ...r,
+  handle: r.profiles?.handle ?? null,
+}));
+console.log(withHandle)
+
+const firstResource = withHandle[0]
+console.log(withHandle)
+console.log(firstResource)
+return Resource.parse(firstResource);
 };
 
 export const uploadResourceFile = async (
@@ -106,23 +143,4 @@ export const createResourceEntry = async (
   if (error) throw new Error(error.message);
 };
 
-// TODO when the comments table for resources is created
 
-export const getCommentsForResource = async (supabase: SupabaseClient, resourceId: string) => {
-  const { data, error } = await supabase
-    .from("comments")
-    .select("id, content, author_name")
-    .eq("resource_id", resourceId)
-    .order("created_at", { ascending: true });
-
-  if (error) throw new Error(error.message);
-  return data;
-};
-
-export const createComment = async (supabase: SupabaseClient, resourceId: string, content: string) => {
-  const { error } = await supabase
-    .from("comments")
-    .insert([{ resource_id: resourceId, content, author_name: "Anonymous" }]);
-
-  if (error) throw new Error(error.message);
-};
