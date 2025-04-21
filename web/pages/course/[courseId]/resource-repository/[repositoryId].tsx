@@ -5,7 +5,6 @@ import { getResourceRepository, getResourcesForRepository } from "@/utils/supaba
 import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { useSupabase } from "@/lib/supabase";
-import { CourseLayout } from "@/components/course/courseLayout";
 import { ResourceRepositoryLayout } from "@/components/resource-repository/resourceRepositoryLayout";
 import { User } from "@supabase/supabase-js";
 import { GetServerSidePropsContext } from "next";

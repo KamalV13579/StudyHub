@@ -6,7 +6,6 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { useState } from "react";
 import { uploadResourceFile, createResourceEntry } from "@/utils/supabase/queries/resource-repository";
 import { useSupabase } from "@/lib/supabase";
-import { useRouter } from "next/router";
 import { useQueryClient } from "@tanstack/react-query";
 import { User } from "@supabase/supabase-js";
 import { toast } from "sonner";

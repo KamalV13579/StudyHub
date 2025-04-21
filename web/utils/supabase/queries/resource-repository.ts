@@ -143,4 +143,71 @@ export const createResourceEntry = async (
   if (error) throw new Error(error.message);
 };
 
+export const handleResourceVote = async (
+  supabase: SupabaseClient,
+  resourceId: string,
+  profileId: string,
+  voteValue: 1 | -1
+) => {
+  const { data: existingVote, error: fetchError } = await supabase
+    .from('resource_vote')
+    .select('id, vote')
+    .eq('resource_id', resourceId)
+    .eq('profile_id', profileId)
+
+  if (fetchError) {
+    console.log("fetch error")
+    throw new Error(fetchError.message,);
+  }
+
+  if (existingVote.length === 0) {
+    const { error: insertError } = await supabase.from('resource_vote').insert([
+      {
+        resource_id: resourceId,
+        profile_id: profileId,
+        vote: voteValue,
+      },
+    ]);
+    if (insertError){
+      console.log("insert error")
+      throw new Error(insertError.message);
+    } 
+  } else if (existingVote[0].vote === voteValue) {
+    // Same vote exists, delete to "unvote"
+    const { error: deleteError } = await supabase
+      .from('resource_vote')
+      .delete()
+      .eq('id', existingVote[0].id);
+    if (deleteError){  console.log("delete error")
+    throw new Error(deleteError.message);
+    }
+  } else {
+    // Different vote exists, update it
+    const { error: updateError } = await supabase
+      .from('resource_vote')
+      .update({ vote: voteValue })
+      .eq('id', existingVote[0].id);
+    if (updateError){ 
+      console.log("update error")
+      throw new Error(updateError.message);}
+  }
+};
+
+export const getResourceVoteCount = async (
+  supabase: SupabaseClient,
+  resourceId: string
+): Promise<number> => {
+  const { data, error } = await supabase
+    .from('resource_vote')
+    .select('vote')
+    .eq('resource_id', resourceId);
+
+  if (error) throw new Error(error.message);
+
+  if (!data) return 0;
+
+  // Sum all votes (votes can be +1 or -1)
+  const total = data.reduce((sum, v) => sum + (v.vote ?? 0), 0);
+  return total;
+};
 

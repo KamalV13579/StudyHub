@@ -2,6 +2,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { useRouter } from "next/router";
+import { useSupabase } from "@/lib/supabase";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getResourceVoteCount, handleResourceVote } from "@/utils/supabase/queries/resource-repository";
+import { User } from "@supabase/supabase-js";
 
 type ResourceCardProps = {
   resource: {
@@ -9,25 +13,41 @@ type ResourceCardProps = {
     title: string;
     description: string;
     uploaded_by: string;
-    vote_count?: number;
     handle?: string;
   };
+  user: User;
 };
 
-export function ResourceCard({ resource }: ResourceCardProps) {
+export function ResourceCard({ resource, user }: ResourceCardProps) {
   const router = useRouter();
   const { courseId } = router.query;
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  const { data: voteCount = 0 } = useQuery({
+    queryKey: ["voteCount", resource.id],
+    queryFn: () => getResourceVoteCount(supabase, resource.id),
+    enabled: !!resource.id,
+  });
+
+  const handleVote = async (voteValue: 1 | -1, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user?.id) {
+      console.error("User ID missing. Cannot vote.");
+      return;
+    }
+
+    try {
+      console.log("Submitting vote:", { resourceId: resource.id, profileId: user.id, voteValue });
+      await handleResourceVote(supabase, resource.id, user.id, voteValue);
+      await queryClient.invalidateQueries({ queryKey: ["voteCount", resource.id] });
+    } catch (err) {
+      console.error("Error voting:", err);
+    }
+  };
 
   const handleCardClick = () => {
     router.push(`/course/${courseId}/resource-repository/resource/${resource.id}`);
-  };
-
-  const handleUpvote = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleDownvote = (e: React.MouseEvent) => {
-    e.stopPropagation();
   };
 
   return (
@@ -36,7 +56,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       className="w-full p-6 hover:shadow-lg cursor-pointer flex flex-col justify-between relative"
     >
       <div className="absolute top-4 right-4 text-xs text-muted-foreground">
-        Uploaded by {resource.handle}
+        Uploaded by {resource.handle ?? "Unknown"}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -49,11 +69,19 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-6">
-        <Button variant="ghost" size="icon" onClick={handleUpvote}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => handleVote(1, e)}
+        >
           <ArrowUp className="h-5 w-5" />
         </Button>
-        <span className="text-sm">{resource.vote_count ?? 0}</span>
-        <Button variant="ghost" size="icon" onClick={handleDownvote}>
+        <span className="text-sm">{voteCount}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => handleVote(-1, e)}
+        >
           <ArrowDown className="h-5 w-5" />
         </Button>
       </div>

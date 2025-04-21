@@ -88,7 +88,7 @@ export default function ResourceDetailPage({ user }: Props) {
 
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="max-w-3xl mx-auto py-8 px-4 flex flex-col gap-8">
-          <ResourceDetailCard resource={resource} />
+          <ResourceDetailCard resource={resource} user ={user}/>
 
         </div>
       </main>
