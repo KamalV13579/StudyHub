@@ -6,7 +6,7 @@ export const ForumPostSchema = z.object({
   author_id: z.string().uuid(),
   title: z.string(),
   content: z.string(),
-  created_at: z.string().datetime(),
+  created_at: z.string(),
   attachment_url: z.string().nullable(),
 });
 

@@ -67,6 +67,9 @@ export default function ForumPage({ user }: ForumPageProps) {
   if (!course || !forumRepository) return <div>Loading…</div>;
   if (postLoading || commentsLoading) return <div>Loading forum…</div>;
 
+  if (!post) return <div>Post not found.</div>;
+  // if (!comments) return <div>Could not load comments.</div>;
+
   return (
     <CourseLayout
       user={user}
@@ -78,9 +81,9 @@ export default function ForumPage({ user }: ForumPageProps) {
       <ForumRepositoryLayout>
         <Card>
           <CardHeader>
-            <CardTitle>{post!.title}</CardTitle>
+            <CardTitle>{post.title}</CardTitle>
           </CardHeader>
-          <CardContent>{post!.content}</CardContent>
+          <CardContent>{post.content}</CardContent>
         </Card>
 
         <div className="space-y-4 mt-6">
