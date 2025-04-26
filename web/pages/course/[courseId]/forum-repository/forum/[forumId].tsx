@@ -1,86 +1,24 @@
 import { useRouter } from "next/router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/lib/supabase";
-import { User, SupabaseClient } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { getForumPost } from "@/utils/supabase/queries/forum-post";
 import { getForumComments, createForumComment } from "@/utils/supabase/queries/forum-comment";
-import { ForumCard } from "@/components/forum-repository/forumCard";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ForumCardDetailed } from "@/components/forum-repository/forumCardDetailed";
 import { GetServerSidePropsContext } from "next";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ForumComment } from "@/utils/supabase/models/forum-comment";
-import { getOrUpsertForumMembershipAnonymousStatus } from "@/utils/supabase/queries/forum-membership";
-import { Badge } from "@/components/ui/badge";
-
-const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, originalPostAuthorId }: { supabase: SupabaseClient, authorId: string, forumId: string, createdAt: string, originalPostAuthorId: string }) => {
-  const [displayName, setDisplayName] = useState<string>('Loading...');
-  const [isLoading, setIsLoading] = useState(true);
-  const isOriginalPoster = authorId === originalPostAuthorId;
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchAuthorDetails = async () => {
-      setIsLoading(true);
-      try {
-        const isAnonymous = await getOrUpsertForumMembershipAnonymousStatus(supabase, forumId, authorId);
-
-        if (isMounted) {
-          if (isAnonymous) {
-            setDisplayName('Anonymous');
-          } else {
-            const { data: profile, error } = await supabase
-              .from('profile')
-              .select('name')
-              .eq('id', authorId)
-              .single();
-
-            if (error || !profile) {
-              console.error("Error fetching profile or profile not found:", error);
-              setDisplayName('Unknown User');
-            } else {
-              setDisplayName(profile.name);
-            }
-          }
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error("Error in fetchAuthorDetails:", error);
-          setDisplayName('Unknown User');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    if (authorId && forumId) {
-        fetchAuthorDetails();
-    } else {
-        setDisplayName('Unknown User');
-        setIsLoading(false);
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [supabase, authorId, forumId]);
-
-  return (
-    <>
-      Posted by {isLoading ? 'Loading...' : displayName}
-      {isOriginalPoster && !isLoading && <Badge variant="secondary" className="ml-2">OP</Badge>}
-      {' '}on {new Date(createdAt).toLocaleString()}
-    </>
-  );
-};
-
+import { CommentCard } from "@/components/forum-repository/commentCard";
+import { getCourseInfo } from "@/utils/supabase/queries/course";
+import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
+import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
+import { CourseSidebar } from "@/components/course/sidebar";
 
 type ForumPageProps = {
   user: User;
@@ -98,7 +36,25 @@ export default function ForumPage({ user }: ForumPageProps) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: forumRepository } = useQuery({
+  const { data: course, isLoading: loadingCourse } = useQuery({
+    queryKey: ["course", courseId],
+    queryFn: () => getCourseInfo(supabase, courseId),
+    enabled: !!courseId,
+  });
+
+  const { data: studyRooms } = useQuery({
+    queryKey: ["studyRooms", courseId],
+    queryFn: () => getStudyRooms(supabase, courseId, user.id),
+    enabled: !!courseId,
+  });
+
+  const { data: resourceRepository } = useQuery({
+    queryKey: ["resourceRepository", courseId],
+    queryFn: () => getResourceRepository(supabase, courseId),
+    enabled: !!courseId,
+  });
+
+  const { data: forumRepository, isLoading: loadingForumRepo } = useQuery({
     queryKey: ["forumRepository", courseId],
     queryFn: () => getForumRepository(supabase, courseId),
     enabled: !!courseId,
@@ -145,64 +101,77 @@ export default function ForumPage({ user }: ForumPageProps) {
     }
   };
 
-  if (postLoading || commentsLoading || !forumRepository) return <div className="flex justify-center items-center h-screen">Loading forum content…</div>;
+  const isLoading = loadingCourse || loadingForumRepo || postLoading || commentsLoading;
+  const hasSidebarData = course && forumRepository && resourceRepository;
+
+  if (isLoading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (!hasSidebarData) return <div className="flex justify-center items-center h-screen">Failed to load course information.</div>;
   if (postError || !post) return <div className="flex justify-center items-center h-screen">Error loading post or post not found.</div>;
   if (commentsError) return <div className="flex justify-center items-center h-screen">Error loading comments.</div>;
 
-  return (
-    <div className="flex flex-col w-full px-6 m-2 max-w-4xl mx-auto">
-        <ForumCard
-            post={post}
-            courseId={courseId}
-            supabase={supabase}
-            user={user}
-            repositoryId={forumRepository.id}
-        />
-        <div className="mt-6 p-4 border rounded-lg bg-card">
-            <Label htmlFor="comment-input" className="text-sm font-medium">Add a comment</Label>
-            <Textarea
-            id="comment-input"
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="What are your thoughts?"
-            className="mt-2 min-h-[80px]"
-            disabled={isSubmitting}
-            />
-            <div className="mt-3 flex justify-end">
-            <Button
-                onClick={handleCommentSubmit}
-                disabled={isSubmitting || !newComment.trim()}
-            >
-                {isSubmitting ? "Posting..." : "Comment"}
-            </Button>
-            </div>
-        </div>
+  const isDeleted = post.title === "DELETED" && post.content === "DELETED";
 
-        <div className="space-y-4 mt-6">
-            <h2 className="text-lg font-semibold">Comments ({comments?.length ?? 0})</h2>
-            {comments && comments.length > 0 ? (
-            comments.map((comment: ForumComment) => (
-                <Card key={comment.id} className="bg-card">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-normal text-muted-foreground">
-                    <CommentAuthorDisplay
-                        supabase={supabase}
-                        authorId={comment.author_id}
-                        forumId={forumId}
-                        createdAt={comment.created_at}
-                        originalPostAuthorId={post.author_id}
+  return (
+    <div className="flex h-screen">
+      <div className="w-60 h-full flex-shrink-0 border-r overflow-y-auto">
+        <CourseSidebar
+          user={user}
+          course={course}
+          studyRooms={studyRooms ?? []}
+          resourceRepository={resourceRepository}
+          forumRepository={forumRepository}
+        />
+      </div>
+      <main className="flex-1 min-w-0 overflow-auto">
+        <div className="flex flex-col w-full px-6 py-4 max-w-4xl mx-auto">
+            <ForumCardDetailed
+                post={post}
+                courseId={courseId}
+                supabase={supabase}
+                user={user}
+            />
+            {!isDeleted && (
+              <>
+                <div className="mt-6 p-4 border rounded-lg bg-card">
+                    <Label htmlFor="comment-input" className="text-sm font-medium">Add a comment</Label>
+                    <Textarea
+                    id="comment-input"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="What are your thoughts?"
+                    className="mt-2 min-h-[80px]"
+                    disabled={isSubmitting}
                     />
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>{comment.content}</p>
-                </CardContent>
-                </Card>
-            ))
-            ) : (
-            <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+                    <div className="mt-3 flex justify-end">
+                    <Button
+                        onClick={handleCommentSubmit}
+                        disabled={isSubmitting || !newComment.trim()}
+                    >
+                        {isSubmitting ? "Posting..." : "Comment"}
+                    </Button>
+                    </div>
+                </div>
+
+                <div className="space-y-4 mt-6">
+                    <h2 className="text-lg font-semibold">Comments ({comments?.length ?? 0})</h2>
+                    {comments && comments.length > 0 ? (
+                    comments.map((comment: ForumComment) => (
+                        <CommentCard
+                            key={comment.id}
+                            comment={comment}
+                            supabase={supabase}
+                            forumId={forumId}
+                            originalPostAuthorId={post.author_id}
+                        />
+                    ))
+                    ) : (
+                    <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
+                    )}
+                </div>
+              </>
             )}
         </div>
+      </main>
     </div>
   );
 }
@@ -211,8 +180,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const supabase = createSupabaseServerClient(context);
   const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error) return { redirect: { destination: '/login', permanent: false } };
-  if (!user) return { redirect: { destination: '/login', permanent: false } };
+  if (error || !user) {
+    return { redirect: { destination: '/login', permanent: false } };
+  }
 
   return { props: { user } };
 }
