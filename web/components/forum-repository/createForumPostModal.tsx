@@ -40,31 +40,18 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
     setSubmitting(true);
 
     try {
-      // TODO: Consider if createForum should happen only if no suitable forum exists
       const forum = await createForum(supabase, courseId, repositoryId, title);
-
-      // TODO: Update createForumPost to accept and use the 'isAnonymous' state variable
-      // TODO: Handle attachment upload and pass URL to createForumPost
-      await createForumPost(supabase, forum.id, user.id, title, content, null /* Pass attachment URL here */);
-
-      // Upsert the membership status based on the dialog choice *after* posting
+      await createForumPost(supabase, forum.id, user.id, title, content, null);
       await upsertForumMembership(supabase, forum.id, user.id, isAnonymous);
-
       toast.success("Forum post created successfully!");
-
-      // Reset form state
       setTitle("");
       setContent("");
       setIsAnonymous(false);
       setAttachments(null);
-      // Reset file input visually if possible (requires ref or direct DOM manipulation)
       const fileInput = document.getElementById('attachments-modal') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-
-      // Invalidate queries to refresh the post list
       await queryClient.invalidateQueries({ queryKey: ["forumPosts", repositoryId] });
-
-      setOpen(false); // Close the dialog
+      setOpen(false);
     } catch (err) {
       console.error("Error creating post:", err);
       toast.error(`Failed to create post: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -84,7 +71,6 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* Title Input */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="title-modal" className="text-right">
                 Title
@@ -99,7 +85,6 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
                 disabled={submitting}
               />
             </div>
-            {/* Content Textarea */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="content-modal" className="text-right">
                 Content
@@ -115,7 +100,6 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
                 disabled={submitting}
               />
             </div>
-            {/* Anonymous Switch */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="anonymous-switch-modal" className="text-right">
                 Post Anonymously
@@ -128,7 +112,6 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
                 className="col-span-3 justify-self-start"
               />
             </div>
-            {/* Attachments Input */}
             <div className="flex flex-col gap-2 sm:grid sm:grid-cols-4 sm:items-center sm:gap-4">
               <Label htmlFor="attachments-modal" className="sm:text-right">
                 Attachment

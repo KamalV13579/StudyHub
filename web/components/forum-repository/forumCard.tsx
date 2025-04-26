@@ -30,7 +30,7 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const isAuthor = user.id === post.author_id;
-  const isDeleted = post.title === "DELETED" && post.content === "DELETED"; // Check if post is deleted
+  const isDeleted = post.title === "DELETED" && post.content === "DELETED";
 
   const handleDelete = async (event: React.MouseEvent) => {
     event.preventDefault();
@@ -51,14 +51,10 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
     }
   };
 
-  // Remove the separate return block for deleted posts
-
   return (
     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      {/* Link remains active regardless of deletion status */}
       <Link key={post.id} href={`/course/${courseId}/forum-repository/forum/${post.forum_id}`} passHref>
         <Card className={`cursor-pointer hover:bg-muted/50 transition relative ${isDeleted ? 'opacity-50' : ''}`}>
-          {/* Only show delete button if user is author AND post is NOT already deleted */}
           {isAuthor && !isDeleted && (
             <DialogTrigger asChild>
               <Button
@@ -72,10 +68,8 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
             </DialogTrigger>
           )}
           <CardHeader>
-            {/* Show "DELETED" title if post is deleted */}
             <CardTitle>{isDeleted ? "DELETED" : post.title}</CardTitle>
             <CardDescription>
-              {/* Show different description if deleted */}
               {isDeleted ? (
                 "This post has been deleted."
               ) : (
@@ -88,7 +82,6 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
               )}
             </CardDescription>
           </CardHeader>
-          {/* Conditionally render content and footer only if not deleted */}
           {!isDeleted && (
             <>
               <CardContent>
@@ -103,7 +96,6 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
           )}
         </Card>
       </Link>
-      {/* Dialog content remains the same */}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>

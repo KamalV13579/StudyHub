@@ -5,7 +5,7 @@ export const ForumCommentSchema = z.object({
   post_id: z.string().uuid(),
   author_id: z.string().uuid(),
   content: z.string(),
-  created_at: z.string().datetime(),
+  created_at: z.string(),
   attachment_url: z.string().nullable(),
 });
 
