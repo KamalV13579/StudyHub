@@ -8,7 +8,11 @@ export const getForumPost = async (
   supabase: SupabaseClient,
   forumId: string
 ): Promise<z.infer<typeof ForumPostSchema>> => {
-  const { data, error } = await supabase.from("forum_post").select("*").eq("forum_id", forumId).single();
+  const { data, error } = await supabase
+    .from("forum_post")
+    .select("*")
+    .eq("forum_id", forumId)
+    .single();
   if (error || !data) throw new Error(error?.message);
   return ForumPostSchema.parse(data);
 };
@@ -21,7 +25,10 @@ export const getForumPostsByRepositoryId = async (
   if (!forums) throw new Error("No forums found");
 
   const forumIds = forums.map((forum: z.infer<typeof ForumSchema>) => forum.id);
-  const { data, error } = await supabase.from("forum_post").select("*").in("forum_id", forumIds);
+  const { data, error } = await supabase
+    .from("forum_post")
+    .select("*")
+    .in("forum_id", forumIds);
 
   if (error) throw new Error(error.message);
   return z.array(ForumPostSchema).parse(data);
@@ -42,12 +49,19 @@ export const createForumPost = async (
     content: content,
     attachment_url: attachmentUrl,
   };
-  const { data, error } = await supabase.from("forum_post").insert(payload).select().single();
+  const { data, error } = await supabase
+    .from("forum_post")
+    .insert(payload)
+    .select()
+    .single();
   if (error || !data) throw new Error(error?.message);
   return ForumPostSchema.parse(data);
 };
 
-export const deleteForumPost = async (supabase: SupabaseClient, postId: string): Promise<void> => {
-  const { error } = await supabase.from("forum_post").update({ title: "DELETED", content: "DELETED" }).eq("id", postId);
+export const deleteForumPost = async (
+  supabase: SupabaseClient,
+  postId: string
+): Promise<void> => {
+  const { error } = await supabase.from("forum_post").delete().eq("id", postId);
   if (error) throw new Error(error.message ?? "Failed to delete forum post");
 };

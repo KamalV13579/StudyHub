@@ -4,7 +4,10 @@ import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { getForumPost } from "@/utils/supabase/queries/forum-post";
-import { getForumComments, createForumComment } from "@/utils/supabase/queries/forum-comment";
+import {
+  getForumComments,
+  createForumComment,
+} from "@/utils/supabase/queries/forum-comment";
 import { ForumCardDetailed } from "@/components/forum-repository/forumCardDetailed";
 import { GetServerSidePropsContext } from "next";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
@@ -67,7 +70,7 @@ export default function ForumPage({ user }: ForumPageProps) {
   } = useQuery({
     queryKey: ["forumPost", forumId],
     queryFn: () => getForumPost(supabase, forumId),
-    enabled: !!forumId
+    enabled: !!forumId,
   });
 
   const {
@@ -77,7 +80,7 @@ export default function ForumPage({ user }: ForumPageProps) {
   } = useQuery({
     queryKey: ["forumComments", forumId],
     queryFn: () => getForumComments(supabase, post!.id),
-    enabled: !!post?.id
+    enabled: !!post?.id,
   });
 
   const handleCommentSubmit = async () => {
@@ -101,13 +104,34 @@ export default function ForumPage({ user }: ForumPageProps) {
     }
   };
 
-  const isLoading = loadingCourse || loadingForumRepo || postLoading || commentsLoading;
+  const isLoading =
+    loadingCourse || loadingForumRepo || postLoading || commentsLoading;
   const hasSidebarData = course && forumRepository && resourceRepository;
 
-  if (isLoading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (!hasSidebarData) return <div className="flex justify-center items-center h-screen">Failed to load course information.</div>;
-  if (postError || !post) return <div className="flex justify-center items-center h-screen">Error loading post or post not found.</div>;
-  if (commentsError) return <div className="flex justify-center items-center h-screen">Error loading comments.</div>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  if (!hasSidebarData)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Failed to load course information.
+      </div>
+    );
+  if (postError || !post)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Error loading post or post not found.
+      </div>
+    );
+  if (commentsError)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Error loading comments.
+      </div>
+    );
 
   const isDeleted = post.title === "DELETED" && post.content === "DELETED";
 
@@ -124,52 +148,58 @@ export default function ForumPage({ user }: ForumPageProps) {
       </div>
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="flex flex-col w-full px-6 py-4 max-w-4xl mx-auto">
-            <ForumCardDetailed
-                post={post}
-                courseId={courseId}
-                supabase={supabase}
-                user={user}
-            />
-            {!isDeleted && (
-              <>
-                <div className="mt-6 p-4 border rounded-lg bg-card">
-                    <Label htmlFor="comment-input" className="text-sm font-medium">Add a comment</Label>
-                    <Textarea
-                    id="comment-input"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="What are your thoughts?"
-                    className="mt-2 min-h-[80px]"
-                    disabled={isSubmitting}
-                    />
-                    <div className="mt-3 flex justify-end">
-                    <Button
-                        onClick={handleCommentSubmit}
-                        disabled={isSubmitting || !newComment.trim()}
-                    >
-                        {isSubmitting ? "Posting..." : "Comment"}
-                    </Button>
-                    </div>
+          <ForumCardDetailed
+            post={post}
+            courseId={courseId}
+            supabase={supabase}
+            user={user}
+          />
+          {!isDeleted && (
+            <>
+              <div className="mt-6 p-4 border rounded-lg bg-card">
+                <Label htmlFor="comment-input" className="text-sm font-medium">
+                  Add a comment
+                </Label>
+                <Textarea
+                  id="comment-input"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="What are your thoughts?"
+                  className="mt-2 min-h-[80px]"
+                  disabled={isSubmitting}
+                />
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    onClick={handleCommentSubmit}
+                    disabled={isSubmitting || !newComment.trim()}
+                  >
+                    {isSubmitting ? "Posting..." : "Comment"}
+                  </Button>
                 </div>
+              </div>
 
-                <div className="space-y-4 mt-6">
-                    <h2 className="text-lg font-semibold">Comments ({comments?.length ?? 0})</h2>
-                    {comments && comments.length > 0 ? (
-                    comments.map((comment: ForumComment) => (
-                        <CommentCard
-                            key={comment.id}
-                            comment={comment}
-                            supabase={supabase}
-                            forumId={forumId}
-                            originalPostAuthorId={post.author_id}
-                        />
-                    ))
-                    ) : (
-                    <p className="text-muted-foreground">No comments yet. Be the first to share your thoughts!</p>
-                    )}
-                </div>
-              </>
-            )}
+              <div className="space-y-4 mt-6">
+                <h2 className="text-lg font-semibold">
+                  Comments ({comments?.length ?? 0})
+                </h2>
+                {comments && comments.length > 0 ? (
+                  comments.map((comment: ForumComment) => (
+                    <CommentCard
+                      key={comment.id}
+                      comment={comment}
+                      supabase={supabase}
+                      forumId={forumId}
+                      originalPostAuthorId={post.author_id}
+                    />
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">
+                    No comments yet. Be the first to share your thoughts!
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
@@ -178,10 +208,13 @@ export default function ForumPage({ user }: ForumPageProps) {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const supabase = createSupabaseServerClient(context);
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
-    return { redirect: { destination: '/login', permanent: false } };
+    return { redirect: { destination: "/login", permanent: false } };
   }
 
   return { props: { user } };

@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ForumPost } from "@/utils/supabase/models/forum-post";
 import { PostAuthorDisplay } from "@/components/forum-repository/postAuthorDisplay";
@@ -26,7 +32,12 @@ type ForumCardDetailedProps = {
   courseId: string;
 };
 
-export function ForumCardDetailed({ post, supabase, user, courseId }: ForumCardDetailedProps) {
+export function ForumCardDetailed({
+  post,
+  supabase,
+  user,
+  courseId,
+}: ForumCardDetailedProps) {
   const queryClient = useQueryClient();
   const router = useRouter(); // Initialize router
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -66,7 +77,12 @@ export function ForumCardDetailed({ post, supabase, user, courseId }: ForumCardD
       <Card className={`relative ${isDeleted ? "opacity-50" : ""}`}>
         {isAuthor && !isDeleted && (
           <DialogTrigger asChild>
-            <Button variant="destructive" size="sm" className="absolute top-2 right-2 z-10" onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute top-2 right-2 z-10"
+              onClick={handleDelete}
+            >
               Delete
             </Button>
           </DialogTrigger>
@@ -88,7 +104,9 @@ export function ForumCardDetailed({ post, supabase, user, courseId }: ForumCardD
         </CardHeader>
         {!isDeleted && (
           <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.content}</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {post.content}
+            </p>
             {post.attachment_url && (
               <Button
                 variant="outline"
@@ -107,7 +125,8 @@ export function ForumCardDetailed({ post, supabase, user, courseId }: ForumCardD
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently mark the post as deleted.
+            This action cannot be undone. This will permanently mark the post as
+            deleted.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
