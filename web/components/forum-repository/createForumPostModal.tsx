@@ -27,7 +27,7 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [attachments, setAttachments] = useState<File | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,18 +38,46 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
     }
 
     setSubmitting(true);
+    let attachmentUrl: string | null = null;
 
     try {
       const forum = await createForum(supabase, courseId, repositoryId, title);
-      await createForumPost(supabase, forum.id, user.id, title, content, null);
+
+      if (attachment) {
+        const fileExt = attachment.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `public/${forum.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('forum-attachments')
+          .upload(filePath, attachment);
+
+        if (uploadError) {
+          throw new Error(`Failed to upload attachment: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('forum-attachments')
+          .getPublicUrl(filePath);
+
+        if (!urlData?.publicUrl) {
+            console.warn("Could not get public URL for uploaded file, but upload succeeded.");
+        } else {
+             attachmentUrl = urlData.publicUrl;
+        }
+      }
+
+      await createForumPost(supabase, forum.id, user.id, title, content, attachmentUrl);
       await upsertForumMembership(supabase, forum.id, user.id, isAnonymous);
+
       toast.success("Forum post created successfully!");
       setTitle("");
       setContent("");
       setIsAnonymous(false);
-      setAttachments(null);
+      setAttachment(null);
       const fileInput = document.getElementById('attachments-modal') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
+
       await queryClient.invalidateQueries({ queryKey: ["forumPosts", repositoryId] });
       setOpen(false);
     } catch (err) {
@@ -100,7 +128,7 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
                 disabled={submitting}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="anonymous-switch-modal" className="text-right">
                 Post Anonymously
               </Label>
@@ -120,7 +148,7 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
               <Input
                 id="attachments-modal"
                 type="file"
-                onChange={(e) => setAttachments(e.target.files ? e.target.files[0] : null)}
+                onChange={(e) => setAttachment(e.target.files ? e.target.files[0] : null)}
                 className="sm:col-span-3"
                 disabled={submitting}
               />

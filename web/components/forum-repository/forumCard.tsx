@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Paperclip } from "lucide-react";
 
 type ForumCardProps = {
   post: ForumPost;
@@ -48,6 +49,14 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
       toast.error("Failed to delete post.");
     } finally {
       setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleAttachmentClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (post.attachment_url) {
+      window.open(post.attachment_url, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -88,6 +97,17 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {post.content}
                 </p>
+                {post.attachment_url && (
+                   <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={handleAttachmentClick}
+                  >
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    View Attachment
+                  </Button>
+                )}
               </CardContent>
               <CardFooter>
                 <Button variant="outline" size="sm">View Post</Button>
