@@ -46,3 +46,8 @@ export const createForumPost = async (
   if (error || !data) throw new Error(error?.message);
   return ForumPostSchema.parse(data);
 };
+
+export const deleteForumPost = async (supabase: SupabaseClient, postId: string): Promise<void> => {
+  const { error } = await supabase.from("forum_post").update({ title: "DELETED", content: "DELETED" }).eq("id", postId);
+  if (error) throw new Error(error.message ?? "Failed to delete forum post");
+};
