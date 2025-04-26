@@ -33,6 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import router from "next/router";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
+import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
 
 type CourseOptionsProps = {
   hovering?: boolean;
@@ -78,14 +79,22 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
   };
 
   const handleDeleteCourse = async () => {
-    await deleteCourse(supabase, course.id, user.id);
-    toast("Course deleted.");
-    queryUtils.refetchQueries({ queryKey: ["courses"] });
-    const courses = await getCourses(supabase, user.id);
-    if (!courses || courses.length === 0) {
-      router.push(`/`)
-    } else {
-      router.push(`/course/${courses[0].id}`);
+    try {
+      await deleteCourse(supabase, course.id, user.id);
+
+      await broadcastUserChange(supabase);
+
+      toast("Course deleted.");
+      queryUtils.refetchQueries({ queryKey: ["courses"] });
+      const courses = await getCourses(supabase, user.id);
+      if (!courses || courses.length === 0) {
+        router.push(`/`)
+      } else {
+        router.push(`/course/${courses[0].id}`);
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast(`Error deleting course: ${errorMessage}`);
     }
   }
 

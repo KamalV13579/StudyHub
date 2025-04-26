@@ -40,6 +40,7 @@ import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import router from "next/router";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
+import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
 
 type StudyRoomOptionsProps = {
   hovering?: boolean;
@@ -97,6 +98,7 @@ export default function StudyRoomOptions({
   const handleDeleteStudyRoom = async () => {
     try {
       await deleteStudyRoom(supabase, studyRoom.id);
+      await broadcastUserChange(supabase);
       toast.success("Study room deleted.");
       queryClient.refetchQueries({
         queryKey: ["studyRooms", studyRoom.course_id], // Ensure correct query key
@@ -116,6 +118,9 @@ export default function StudyRoomOptions({
     e.stopPropagation();
     try {
       await leaveStudyRoom(supabase, studyRoom.id, user.id);
+
+      await broadcastUserChange(supabase);
+
       toast.success("Left study room.");
       queryClient.refetchQueries({
         queryKey: ["studyRooms", studyRoom.course_id],

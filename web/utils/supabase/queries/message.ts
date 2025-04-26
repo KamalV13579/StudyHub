@@ -34,11 +34,8 @@ export const getPaginatedMessages = async (
     throw new Error(`Error fetching messages: ${messagesError.message}`);
   }
 
-  console.log("Raw messages from Supabase:", messages);
-
   try {
     const parsedMessages = Message.array().parse(messages);
-    console.log("Successfully parsed messages:", parsedMessages);
     return parsedMessages;
   } catch (error) {
     console.error("Failed to parse messages:", error, messages);

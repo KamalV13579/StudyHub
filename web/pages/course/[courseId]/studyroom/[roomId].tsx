@@ -52,11 +52,10 @@ import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 
-export type ChannelPageProps = { user: User };
-export default function CourseHomePage({
+export type StudyRoomPageProps = { user: User };
+export default function StudyRoomPage({
   user,
-  initialStudyRooms,
-}: ChannelPageProps & { initialStudyRooms: StudyRoom[] }) {
+}: StudyRoomPageProps & { initialStudyRooms: StudyRoom[] }) {
   const router = useRouter();
   const { courseId, roomId: studyRoomId } = router.query;
   const [forceHeaderUpdate, setForceHeaderUpdate] = useState(0);
@@ -67,16 +66,6 @@ export default function CourseHomePage({
   const handleUpdateNameSuccess = () => {
     setForceHeaderUpdate((prev) => prev + 1);
   };
-
-  const { data } = useQuery({
-    queryKey: ["studyRooms", courseId, user.id],
-    queryFn: () =>
-      getStudyRoomsByMembership(supabase, user.id, courseId as string),
-    initialData: initialStudyRooms, // Use server-fetched data
-    enabled: !!courseId,
-  });
-
-  console.log(data);
 
   // Fetches the currently selected course
   const { data: course } = useQuery({
@@ -107,7 +96,6 @@ export default function CourseHomePage({
   const { data: studyRoom } = useQuery({
     queryKey: ["study_room", studyRoomId],
     queryFn: async () => {
-      console.log("roomId", studyRoomId);
       if (!studyRoomId) return null;
       return getStudyRoom(supabase, studyRoomId as string);
     },
@@ -155,7 +143,7 @@ export default function CourseHomePage({
 
   // Fetches all the members in a study room
   const { data: members } = useQuery({
-    queryKey: ["members", courseId],
+    queryKey: ["members", studyRoomId],
     queryFn: async () => {
       return await getStudyRoomMembers(supabase, studyRoomId as string);
     },
@@ -496,7 +484,6 @@ export default function CourseHomePage({
           const pendingMessage = draftMessageText;
           const pendingFile = selectedFile;
 
-          console.log(pendingMessage);
 
           setDraftMessageText("");
           setSelectedFile(null);
@@ -504,14 +491,12 @@ export default function CourseHomePage({
 
           sendMessage(supabase, draftMessage, selectedFile)
             .then((postedMessage) => {
-              console.log("Message successfully posted:", postedMessage);
               if (postedMessage) {
                 updateMessageInCache(postedMessage);
               }
               messageEndRef.current?.scrollIntoView();
             })
-            .catch((error) => {
-              console.error("Message submission error:", error);
+            .catch(() => {
               toast("Message failed to send. Please try again.");
               deleteMessageFromCache(draftMessage.id);
               setDraftMessageText(pendingMessage);
@@ -759,7 +744,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       courseId
     );
   } catch (error) {
-    console.error("Error fetching study rooms:", error);
+    toast(`Error fetching study rooms: ${error}`);
   }
 
   return {

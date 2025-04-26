@@ -92,6 +92,7 @@ export const joinStudyRoom = async (
         profile_id: userId,
         study_room_id: studyRoom.id,
         is_owner: false, // If not creator, set false
+        course_id: studyRoom.course_id,
       },
     ]);
 
@@ -111,7 +112,7 @@ export const createStudyRoom = async (
   userId: string
 ): Promise<z.infer<typeof StudyRoom>> => {
   // Insert a new study room record.
-  const { data: roomData, error: roomError } = await supabase
+  const { data: studyRoom, error: roomError } = await supabase
     .from("study_room")
     .insert([
       {
@@ -122,7 +123,7 @@ export const createStudyRoom = async (
     .select() // Return the inserted record.
     .single();
 
-  if (roomError || !roomData) {
+  if (roomError || !studyRoom) {
     throw new Error(`Error creating study room: ${roomError?.message}`);
   }
 
@@ -131,9 +132,10 @@ export const createStudyRoom = async (
     .from("study_room_membership")
     .insert([
       {
-        study_room_id: roomData.id,
+        study_room_id: studyRoom.id,
         profile_id: userId,
         is_owner: true, // Set the creator as the owner.
+        course_id: studyRoom.course_id,
       },
     ]);
 
@@ -143,7 +145,7 @@ export const createStudyRoom = async (
     );
   }
 
-  return roomData as z.infer<typeof StudyRoom>;
+  return studyRoom as z.infer<typeof StudyRoom>;
 };
 
 export const getStudyRoom = async (
@@ -163,7 +165,7 @@ export const getStudyRoom = async (
     )
     .eq("id", studyRoomId)
     .eq("study_room_membership.is_owner", true)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
     throw new Error(`Error fetching study room: ${error?.message}`);
@@ -262,11 +264,11 @@ export const getStudyRoomsByMembership = async (
   courseId: string
 ): Promise<StudyRoom[]> => {
   const { data, error } = await supabase
-    .from("study_room_members")
-    .select("study_rooms(*)")
-    .eq("user_id", userId)
-    .eq("study_rooms.course_id", courseId);
+    .from("study_room_membership")
+    .select("study_room(*)")
+    .eq("profile_id", userId)
+    .eq("study_room.course_id", courseId);
 
   if (error) throw error;
-  return data.flatMap((d) => d.study_rooms) as StudyRoom[];
+  return data.flatMap((d) => d.study_room) as StudyRoom[];
 };

@@ -33,7 +33,6 @@ export default function ProfilePopover({
   children,
   ...props
 }: ProfilePopoverProps & React.HTMLProps<typeof HTMLDivElement>) {
-  console.log("ProfilePopover", profile);
   return (
     <Popover {...props}>
       <PopoverTrigger className={triggerFullWidth ? `w-full` : ""}>
