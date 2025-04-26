@@ -17,16 +17,16 @@ export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { 
 
         if (!isAnonymous) {
           const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('username')
+            .from('profile')
+            .select('name')
             .eq('id', authorId)
             .single();
 
-          if (profileError || !profile?.username) {
+          if (profileError || !profile?.name) {
             console.warn(`Could not fetch username for ${authorId}, falling back to ID.`);
             name = `User ${authorId.substring(0, 8)}...`;
           } else {
-            name = profile.username;
+            name = profile.name;
           }
         }
 
