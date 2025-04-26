@@ -3,7 +3,7 @@ import { SupabaseClient, User } from "@supabase/supabase-js";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ForumPost } from "@/utils/supabase/models/forum-post";
-import { PostAuthorDisplay } from "@/components/forum-repository/forumRepositoryLayout";
+import { PostAuthorDisplay } from "@/components/forum-repository/postAuthorDisplay";
 import { deleteForumPost } from "@/utils/supabase/queries/forum-post";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
