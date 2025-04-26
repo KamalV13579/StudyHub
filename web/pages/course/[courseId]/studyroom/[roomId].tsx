@@ -271,57 +271,37 @@ export default function StudyRoomPage({
   }, []);
 
   // Realtime online users
-
   useEffect(() => {
-    const presenceSubscription = supabase.channel("presence-channel", {
-      config: {
-        presence: {
-          key: user?.id,
-        },
-      },
-    });
+    if (!studyRoomId || !user) return;
 
-    presenceSubscription.on(
-      "presence",
-      { event: "join" },
-      (payload: { newPresences: { user_id: string }[] }) => {
-        const joiningUserIds = payload.newPresences.map(
-          (presence) => presence.user_id
-        );
-        onUserJoin(joiningUserIds);
-      }
-    );
+    const channel = supabase
+      .channel(`presence-room:${studyRoomId}`, {
+        config: { presence: { key: user.id } },
+      })
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state));
+      })
+      .on("presence", { event: "join" }, ({ newPresences }) => {
+        const joiningIds = newPresences.map((p) => p.user_id);
+        onUserJoin(joiningIds);
+      })
+      .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        const leavingIds = leftPresences.map((p) => p.user_id);
+        onUserLeave(leavingIds);
+      });
 
-    presenceSubscription.on(
-      "presence",
-      { event: "leave" },
-      (payload: { leftPresences: { user_id: string }[] }) => {
-        const leavingUserIds = payload.leftPresences.map(
-          (presence) => presence.user_id
-        );
-        onUserLeave(leavingUserIds);
-      }
-    );
-
-    presenceSubscription.subscribe(async (status) => {
+    channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
-        if (user) {
-          await presenceSubscription.track({
-            user_id: user.id,
-            online_at: new Date().toISOString(),
-          });
-
-          const state = presenceSubscription.presenceState();
-          const allOnlineUsers = Object.keys(state);
-          onUserJoin(allOnlineUsers);
-        }
+        channel.track({ user_id: user.id });
       }
     });
 
     return () => {
-      presenceSubscription.unsubscribe();
+      supabase.removeChannel(channel);
+      setOnlineUsers([]);
     };
-  }, [supabase, user, onUserJoin, onUserLeave]);
+  }, [supabase, studyRoomId, user, onUserJoin, onUserLeave]);
 
   // Tracking typing statuses
 
