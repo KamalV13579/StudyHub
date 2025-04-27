@@ -236,7 +236,6 @@ export default function StudyRoomPage({
           event: "DELETE",
           schema: "public",
           table: "study_room_message",
-          filter: `study_room_id=eq.${studyRoomId}`,
         },
         (payload) => {
           deleteMessageFromCache(payload.old.id);
@@ -306,6 +305,30 @@ export default function StudyRoomPage({
   // Tracking typing statuses
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!studyRoomId) return;
+  
+    const roomDeleteSub = supabase
+      .channel(`room-deleted:${studyRoomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "study_room",
+          filter: `id=eq.${studyRoomId}`,
+        },
+        () => {
+          router.replace(`/courses/${courseId}`);
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(roomDeleteSub);
+    };
+  }, [supabase, studyRoomId, courseId, router]);
 
   // Using memos to keep statuses
 
