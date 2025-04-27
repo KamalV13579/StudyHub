@@ -57,6 +57,7 @@ export default function StudyRoomPage({
   user,
 }: StudyRoomPageProps & { initialStudyRooms: StudyRoom[] }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { courseId, roomId: studyRoomId } = router.query;
   const [forceHeaderUpdate, setForceHeaderUpdate] = useState(0);
   const supabase = createSupabaseComponentClient();
@@ -302,6 +303,38 @@ export default function StudyRoomPage({
     };
   }, [supabase, studyRoomId, user, onUserJoin, onUserLeave]);
 
+  useEffect(() => {
+    if (!studyRoomId) return;
+
+    const channel = supabase
+      .channel("room-deletions")
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "study_room",
+        },
+        (payload) => {
+          const deletedId = payload.old.id;
+          
+          if (deletedId === studyRoomId) {
+            router.replace(`/course/${courseId}`);
+          }
+          
+          queryClient.setQueryData<StudyRoom[]>(
+            ["studyRooms", courseId],
+            (rooms = []) => rooms.filter((r) => r.id !== deletedId)
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, studyRoomId, courseId, router, queryClient]);
+
   // Tracking typing statuses
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
@@ -320,7 +353,7 @@ export default function StudyRoomPage({
           filter: `id=eq.${studyRoomId}`,
         },
         () => {
-          router.replace(`/courses/${courseId}`);
+          router.replace(`/course/${courseId}`);
         }
       )
       .subscribe();
