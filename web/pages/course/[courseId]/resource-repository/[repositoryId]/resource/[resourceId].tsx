@@ -14,7 +14,8 @@ import { ResourceDetailCard } from "@/components/resource-repository/resourceDet
 import { User } from "@supabase/supabase-js";
 import { GetServerSidePropsContext } from "next";
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
-
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 type Props = {
   user: User;
 };
@@ -26,6 +27,8 @@ export default function ResourceDetailPage({ user }: Props) {
     resourceId: string;
   };
   const supabase = useSupabase();
+
+  const { repositoryId } = router.query;
 
   const { data: course, isLoading: loadingCourse } = useQuery({
     queryKey: ["course", courseId],
@@ -87,7 +90,13 @@ export default function ResourceDetailPage({ user }: Props) {
       </div>
 
       <main className="flex-1 min-w-0 overflow-auto">
-        <div className="max-w-3xl mx-auto py-8 px-4 flex flex-col gap-8">
+        <div className="mx-auto py-8 px-4 flex flex-col gap-8">
+          <Button asChild variant="outline" size="sm" className="max-w-3xs inline-flex">
+            {/* Button will render this <Link> instead of a <button> */}
+            <Link href={`/course/${courseId}/resource-repository/${repositoryId}`}>
+              Back to Resources
+            </Link>
+          </Button>
           <ResourceDetailCard resource={resource} user ={user}/>
 
         </div>
