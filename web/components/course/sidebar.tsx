@@ -42,6 +42,7 @@ import { Course } from "@/utils/supabase/models/course";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import { ResourceRepository } from "@/utils/supabase/models/resource-repository";
 import { ForumRepository } from "@/utils/supabase/models/forum-repository";
+import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
 
 type CourseSidebarProps = {
   course: Course;
@@ -100,6 +101,7 @@ export function CourseSidebar({
         course.id,
         user.id
       );
+      await broadcastUserChange(supabase);
       if (joinedStudyRoom.alreadyJoined) {
         toast("You are already a member of this study room.");
       } else {

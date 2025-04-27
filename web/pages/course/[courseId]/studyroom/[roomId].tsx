@@ -52,12 +52,12 @@ import { StudyRoom } from "@/utils/supabase/models/studyroom";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { getResourceRepository } from "@/utils/supabase/queries/resource-repository";
 
-export type ChannelPageProps = { user: User };
-export default function CourseHomePage({
+export type StudyRoomPageProps = { user: User };
+export default function StudyRoomPage({
   user,
-  initialStudyRooms,
-}: ChannelPageProps & { initialStudyRooms: StudyRoom[] }) {
+}: StudyRoomPageProps & { initialStudyRooms: StudyRoom[] }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { courseId, roomId: studyRoomId } = router.query;
   const [forceHeaderUpdate, setForceHeaderUpdate] = useState(0);
   const supabase = createSupabaseComponentClient();
@@ -67,16 +67,6 @@ export default function CourseHomePage({
   const handleUpdateNameSuccess = () => {
     setForceHeaderUpdate((prev) => prev + 1);
   };
-
-  const { data } = useQuery({
-    queryKey: ["studyRooms", courseId, user.id],
-    queryFn: () =>
-      getStudyRoomsByMembership(supabase, user.id, courseId as string),
-    initialData: initialStudyRooms, // Use server-fetched data
-    enabled: !!courseId,
-  });
-
-  console.log(data);
 
   // Fetches the currently selected course
   const { data: course } = useQuery({
@@ -107,7 +97,6 @@ export default function CourseHomePage({
   const { data: studyRoom } = useQuery({
     queryKey: ["study_room", studyRoomId],
     queryFn: async () => {
-      console.log("roomId", studyRoomId);
       if (!studyRoomId) return null;
       return getStudyRoom(supabase, studyRoomId as string);
     },
@@ -155,7 +144,7 @@ export default function CourseHomePage({
 
   // Fetches all the members in a study room
   const { data: members } = useQuery({
-    queryKey: ["members", courseId],
+    queryKey: ["members", studyRoomId],
     queryFn: async () => {
       return await getStudyRoomMembers(supabase, studyRoomId as string);
     },
@@ -248,7 +237,6 @@ export default function CourseHomePage({
           event: "DELETE",
           schema: "public",
           table: "study_room_message",
-          filter: `study_room_id=eq.${studyRoomId}`,
         },
         (payload) => {
           deleteMessageFromCache(payload.old.id);
@@ -283,61 +271,97 @@ export default function CourseHomePage({
   }, []);
 
   // Realtime online users
-
   useEffect(() => {
-    const presenceSubscription = supabase.channel("presence-channel", {
-      config: {
-        presence: {
-          key: user?.id,
-        },
-      },
-    });
+    if (!studyRoomId || !user) return;
 
-    presenceSubscription.on(
-      "presence",
-      { event: "join" },
-      (payload: { newPresences: { user_id: string }[] }) => {
-        const joiningUserIds = payload.newPresences.map(
-          (presence) => presence.user_id
-        );
-        onUserJoin(joiningUserIds);
-      }
-    );
+    const channel = supabase
+      .channel(`presence-room:${studyRoomId}`, {
+        config: { presence: { key: user.id } },
+      })
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state));
+      })
+      .on("presence", { event: "join" }, ({ newPresences }) => {
+        const joiningIds = newPresences.map((p) => p.user_id);
+        onUserJoin(joiningIds);
+      })
+      .on("presence", { event: "leave" }, ({ leftPresences }) => {
+        const leavingIds = leftPresences.map((p) => p.user_id);
+        onUserLeave(leavingIds);
+      });
 
-    presenceSubscription.on(
-      "presence",
-      { event: "leave" },
-      (payload: { leftPresences: { user_id: string }[] }) => {
-        const leavingUserIds = payload.leftPresences.map(
-          (presence) => presence.user_id
-        );
-        onUserLeave(leavingUserIds);
-      }
-    );
-
-    presenceSubscription.subscribe(async (status) => {
+    channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
-        if (user) {
-          await presenceSubscription.track({
-            user_id: user.id,
-            online_at: new Date().toISOString(),
-          });
-
-          const state = presenceSubscription.presenceState();
-          const allOnlineUsers = Object.keys(state);
-          onUserJoin(allOnlineUsers);
-        }
+        channel.track({ user_id: user.id });
       }
     });
 
     return () => {
-      presenceSubscription.unsubscribe();
+      supabase.removeChannel(channel);
+      setOnlineUsers([]);
     };
-  }, [supabase, user, onUserJoin, onUserLeave]);
+  }, [supabase, studyRoomId, user, onUserJoin, onUserLeave]);
+
+  useEffect(() => {
+    if (!studyRoomId) return;
+
+    const channel = supabase
+      .channel("room-deletions")
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "study_room",
+        },
+        (payload) => {
+          const deletedId = payload.old.id;
+          
+          if (deletedId === studyRoomId) {
+            router.replace(`/course/${courseId}`);
+          }
+          
+          queryClient.setQueryData<StudyRoom[]>(
+            ["studyRooms", courseId],
+            (rooms = []) => rooms.filter((r) => r.id !== deletedId)
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, studyRoomId, courseId, router, queryClient]);
 
   // Tracking typing statuses
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!studyRoomId) return;
+  
+    const roomDeleteSub = supabase
+      .channel(`room-deleted:${studyRoomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "study_room",
+          filter: `id=eq.${studyRoomId}`,
+        },
+        () => {
+          router.replace(`/course/${courseId}`);
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(roomDeleteSub);
+    };
+  }, [supabase, studyRoomId, courseId, router]);
 
   // Using memos to keep statuses
 
@@ -496,7 +520,6 @@ export default function CourseHomePage({
           const pendingMessage = draftMessageText;
           const pendingFile = selectedFile;
 
-          console.log(pendingMessage);
 
           setDraftMessageText("");
           setSelectedFile(null);
@@ -504,14 +527,12 @@ export default function CourseHomePage({
 
           sendMessage(supabase, draftMessage, selectedFile)
             .then((postedMessage) => {
-              console.log("Message successfully posted:", postedMessage);
               if (postedMessage) {
                 updateMessageInCache(postedMessage);
               }
               messageEndRef.current?.scrollIntoView();
             })
-            .catch((error) => {
-              console.error("Message submission error:", error);
+            .catch(() => {
               toast("Message failed to send. Please try again.");
               deleteMessageFromCache(draftMessage.id);
               setDraftMessageText(pendingMessage);
@@ -759,7 +780,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       courseId
     );
   } catch (error) {
-    console.error("Error fetching study rooms:", error);
+    toast(`Error fetching study rooms: ${error}`);
   }
 
   return {

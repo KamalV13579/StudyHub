@@ -111,20 +111,45 @@ export const getCourseInfo = async (
   return data as z.infer<typeof Course>;
 };
 
-// Deletes a course from user's course list by removing their membership.
 export const deleteCourse = async (
   supabase: SupabaseClient,
   courseId: string,
   userId: string
 ): Promise<void> => {
-  const { error } = await supabase
+  // 1) Find all rooms they own in this course *before* you drop their membership
+  const { data: ownedMemberships, error: membershipError } = await supabase
+    .from("study_room_membership")
+    .select("study_room_id")
+    .eq("profile_id", userId)
+    .eq("course_id", courseId)
+    .eq("is_owner", true);
+
+  if (membershipError) {
+    throw new Error(`Error fetching owned rooms: ${membershipError.message}`);
+  }
+
+  const roomIdsToDelete = (ownedMemberships ?? []).map((m) => m.study_room_id);
+  if (roomIdsToDelete.length) {
+    const { error: roomDeleteError } = await supabase
+      .from("study_room")
+      .delete()
+      .in("id", roomIdsToDelete);
+    if (roomDeleteError) {
+      throw new Error(
+        `Error deleting owned study rooms: ${roomDeleteError.message}`
+      );
+    }
+  }
+
+  // 2) Now remove them from the course
+  const { error: courseError } = await supabase
     .from("course_membership")
     .delete()
     .eq("profile_id", userId)
     .eq("course_id", courseId);
 
-  if (error) {
-    throw new Error(`Error deleting course: ${error.message}`);
+  if (courseError) {
+    throw new Error(`Error deleting course: ${courseError.message}`);
   }
 };
 

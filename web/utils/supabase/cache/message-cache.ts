@@ -153,16 +153,20 @@ export const updateMessageInCacheFn =
 export const deleteMessageFromCacheFn =
   (queryUtils: QueryClient, studyRoomId: string | string[] | undefined) =>
   (messageId: string) => {
-    queryUtils.setQueryData(
-      ["messages", studyRoomId],
-      (oldData: InfiniteData<z.infer<typeof Message>[]> | undefined) => {
+    for (const key of [
+      ["messages", studyRoomId] as const,
+      ["filteredMessages", studyRoomId] as const,
+    ]) {
+      queryUtils.setQueryData<
+        InfiniteData<z.infer<typeof Message>[]> | undefined
+      >(key, (oldData) => {
         if (!oldData) return oldData;
         return {
           pageParams: oldData.pageParams,
           pages: oldData.pages.map((page) =>
-            page.filter((message) => message.id !== messageId)
+            page.filter((m) => m.id !== messageId)
           ),
         };
-      }
-    );
+      });
+    }
   };

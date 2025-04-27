@@ -23,6 +23,7 @@ import {
   DialogTrigger,
   DialogContent,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -112,7 +113,9 @@ export default function MessageView({
                 </DialogTrigger>
                 <DialogContent className="bg-background rounded-lg border p-6 shadow-lg">
                   <DialogHeader className="space-y-4">
-                    <h3 className="text-lg font-semibold">Delete Message</h3>
+                    <DialogTitle className="text-lg font-semibold">
+                      Delete Message
+                    </DialogTitle>
                     <DialogDescription className="text-muted-foreground">
                       Are you sure you want to delete this message?
                     </DialogDescription>
