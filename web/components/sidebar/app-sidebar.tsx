@@ -16,6 +16,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { NavUser } from "@/components/sidebar/nav-user";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
 
 type AppSidebarProps = { user: User } & React.ComponentProps<typeof Sidebar>;
 
@@ -37,6 +39,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const queryUtils = useQueryClient();
   const router = useRouter();
   const supabase = useSupabase();
+  const { resolvedTheme } = useTheme();
 
   const { data: courses } = useQuery({
     queryKey: ["courses", user.id],
@@ -49,23 +52,25 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
   const [isInstructor, setIsInstructor] = useState(false);
 
   const handleJoinCourse = async () => {
-    const courseCode = `${subject.toUpperCase().trim()} ${courseNumber.trim()}`
+    const courseCode = `${subject.toUpperCase().trim()} ${courseNumber.trim()}`;
     try {
-      const result = await joinCourse(supabase, courseCode, isInstructor, user.id)
-
+      const result = await joinCourse(
+        supabase,
+        courseCode,
+        isInstructor,
+        user.id
+      );
       if (result.alreadyJoined) {
-        toast("Course already joined.")
+        toast("Course already joined.");
       } else {
-        toast.success("Course joined.")
+        toast.success("Course joined.");
       }
-
-      broadcastUserChange(supabase)
-      queryUtils.refetchQueries({ queryKey: ["courses"] })
-      setJoinDialogOpen(false)
-
+      broadcastUserChange(supabase);
+      queryUtils.refetchQueries({ queryKey: ["courses"] });
+      setJoinDialogOpen(false);
       // If this was the first course, redirect into it
       if (!courses || courses.length === 0) {
-        router.push(`/course/${result.id}`)
+        router.push(`/course/${result.id}`);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -74,14 +79,21 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         toast.error("An unknown error occurred while joining course.");
       }
     }
-  }
+  };
 
+  // Determine which logo to show based on theme
+  const logoUrl =
+    resolvedTheme === "light"
+      ? "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//image.png"
+      : "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png";
   return (
     <Sidebar className="h-screen border-r flex flex-col" {...props}>
       <SidebarHeader className="flex items-center justify-center h-[125px]">
-        <img
-          src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
+        <Image
+          src={logoUrl}
           alt="Logo"
+          width={300}
+          height={300}
           className="h-3/4 w-3/4 object-contain"
         />
       </SidebarHeader>
@@ -98,7 +110,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           </Button>
         </SidebarHeader>
       </div>
-
       <ScrollArea className="flex-1 overflow-y-auto">
         <SidebarContent className="pb-4">
           <SidebarGroup>
@@ -115,18 +126,17 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           </SidebarGroup>
         </SidebarContent>
       </ScrollArea>
-
       <Separator />
-
       <SidebarFooter className="p-4">
         <NavUser user={user} />
       </SidebarFooter>
-
       {/* Join Course Dialog */}
       <Dialog open={joinDialogOpen} onOpenChange={setJoinDialogOpen}>
         <DialogContent className="sm:max-w-[425px] mx-auto">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Join a Course</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Join a Course
+            </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
               Enter the subject & course number (e.g., COMP and 426).
             </DialogDescription>
@@ -161,7 +171,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button onClick={handleJoinCourse} disabled={!subject || !courseNumber} className="w-full">
+            <Button
+              onClick={handleJoinCourse}
+              disabled={!subject || !courseNumber}
+              className="w-full"
+            >
               Join Course
             </Button>
           </DialogFooter>
