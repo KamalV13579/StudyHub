@@ -46,7 +46,7 @@ export function ResourceRepositoryLayout({ resources, user, repositoryId }: Reso
       <div className="flex flex-col w-full gap-6 mt-6">
         {filteredResources.length > 0 ? (
           filteredResources.map((resource) => (
-            <ResourceCard key={resource.id} resource={resource} user={user}/>
+            <ResourceCard key={resource.id} resource={resource} user={user} />
           ))
         ) : (
           <div className="text-muted-foreground text-center mt-10">

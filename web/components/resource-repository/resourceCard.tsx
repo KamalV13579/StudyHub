@@ -21,6 +21,7 @@ type ResourceCardProps = {
 export function ResourceCard({ resource, user }: ResourceCardProps) {
   const router = useRouter();
   const { courseId } = router.query;
+  const { repositoryId } = router.query;
   const supabase = useSupabase();
   const queryClient = useQueryClient();
 
@@ -47,7 +48,8 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
   };
 
   const handleCardClick = () => {
-    router.push(`/course/${courseId}/resource-repository/resource/${resource.id}`);
+    console.log("Navigating to resource detail page", { courseId, repositoryId, resourceId: resource.id });
+    router.push(`/course/${courseId}/resource-repository/${repositoryId}/resource/${resource.id}`);
   };
 
   return (
