@@ -9,15 +9,17 @@ import { z } from "zod";
 import ProfileAvatar from "../profile/profile-avatar";
 import { SidebarMenuButton } from "../ui/sidebar";
 import { Profile } from "@/utils/supabase/models/profile";
-import { Crown } from "lucide-react";
+import { Crown, GraduationCap } from "lucide-react";
 
 type StudyRoomUserViewProps = {
   profile: z.infer<typeof Profile>;
   isAdmin?: boolean;
+  isTutor?: boolean;
 };
 export default function StudyRoomUserView({
   profile,
   isAdmin = false,
+  isTutor = false,
 }: StudyRoomUserViewProps) {
   return (
     <SidebarMenuButton asChild className="h-12 p-3">
@@ -27,6 +29,9 @@ export default function StudyRoomUserView({
           {profile.name}
         </a>
         {isAdmin && <Crown className="ml-1 text-amber-400 shrink-0" />}
+        {isTutor && (
+          <GraduationCap className="ml-1 text-emerald-400 shrink-0" />
+        )}
       </div>
     </SidebarMenuButton>
   );
