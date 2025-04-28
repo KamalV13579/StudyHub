@@ -1,4 +1,12 @@
-import { ChevronsUpDown, Edit, ImageUp, LogOut } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Edit,
+  ImageUp,
+  LogOut,
+  Sun,
+  Moon,
+  Monitor,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,6 +14,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
@@ -13,7 +26,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import ProfileAvatar from "../profile/profile-avatar";
 import { useEffect, useRef, useState } from "react";
 import { Label } from "../ui/label";
@@ -21,14 +41,19 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { changeProfileDisplayName, changeProfileImage, getProfile } from "@/utils/supabase/queries/profile";
+import {
+  changeProfileDisplayName,
+  changeProfileImage,
+  getProfile,
+} from "@/utils/supabase/queries/profile";
 import { broadcastUserChange } from "@/utils/supabase/realtime/broadcasts";
 import { useRouter } from "next/router";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/lib/supabase";
+import { useTheme } from "next-themes";
 
-type NavUserProps = { 
-  user: User 
+type NavUserProps = {
+  user: User;
 };
 
 export function NavUser({ user }: NavUserProps) {
@@ -36,6 +61,7 @@ export function NavUser({ user }: NavUserProps) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const supabase = useSupabase();
+  const { theme, setTheme } = useTheme();
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [renameText, setRenameText] = useState("");
@@ -50,6 +76,26 @@ export function NavUser({ user }: NavUserProps) {
   }, [profile]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Function to get the theme icon
+  const getThemeIcon = () => {
+    switch (theme) {
+      case "light":
+        return <Sun className="size-4 mr-2" />;
+      case "dark":
+        return <Moon className="size-4 mr-2" />;
+      default:
+        return <Monitor className="size-4 mr-2" />;
+    }
+  };
+
+  // Function to handle theme change
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    toast(
+      `${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme applied`
+    );
+  };
 
   return (
     <SidebarMenu>
@@ -85,9 +131,17 @@ export function NavUser({ user }: NavUserProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {/* Rename Dialog and other controls */}
-            <Dialog open={renameDialogOpen} onOpenChange={(isOpen) => setRenameDialogOpen(isOpen)}>
+            <Dialog
+              open={renameDialogOpen}
+              onOpenChange={(isOpen) => setRenameDialogOpen(isOpen)}
+            >
               <DialogTrigger asChild>
-                <DropdownMenuItem onClick={(e) => { e.preventDefault(); setRenameDialogOpen(true); }}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setRenameDialogOpen(true);
+                  }}
+                >
                   <Edit />
                   Change Display Name
                 </DropdownMenuItem>
@@ -98,8 +152,14 @@ export function NavUser({ user }: NavUserProps) {
                 </DialogHeader>
                 <div className="flex flex-col gap-3 py-3">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="name" className="text-right">Display Name</Label>
-                    <Input id="name" value={renameText} onChange={(e) => setRenameText(e.target.value)} />
+                    <Label htmlFor="name" className="text-right">
+                      Display Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={renameText}
+                      onChange={(e) => setRenameText(e.target.value)}
+                    />
                   </div>
                 </div>
                 <DialogFooter>
@@ -107,7 +167,11 @@ export function NavUser({ user }: NavUserProps) {
                     disabled={renameText.length < 1}
                     type="submit"
                     onClick={async () => {
-                      await changeProfileDisplayName(supabase, renameText, user.id);
+                      await changeProfileDisplayName(
+                        supabase,
+                        renameText,
+                        user.id
+                      );
                       broadcastUserChange(supabase);
                       toast("Display name changed.");
                       queryUtils.refetchQueries({ queryKey: ["profile"] });
@@ -120,10 +184,44 @@ export function NavUser({ user }: NavUserProps) {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <DropdownMenuItem onClick={() => { if (fileInputRef && fileInputRef.current) fileInputRef.current.click(); }}>
+
+            <DropdownMenuItem
+              onClick={() => {
+                if (fileInputRef && fileInputRef.current)
+                  fileInputRef.current.click();
+              }}
+            >
               <ImageUp />
               Change Profile Image
             </DropdownMenuItem>
+
+            {/* Theme Selector */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                {getThemeIcon()}
+                Appearance
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={theme}
+                  onValueChange={handleThemeChange}
+                >
+                  <DropdownMenuRadioItem value="light">
+                    <Sun className="size-4 mr-2" />
+                    Light
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <Moon className="size-4 mr-2" />
+                    Dark
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="system">
+                    <Monitor className="size-4 mr-2" />
+                    System
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
@@ -147,12 +245,14 @@ export function NavUser({ user }: NavUserProps) {
         ref={fileInputRef}
         accept="image/*"
         onChange={async (e) => {
-          const file = (e.target.files ?? []).length > 0 ? e.target.files![0] : null;
+          const file =
+            (e.target.files ?? []).length > 0 ? e.target.files![0] : null;
           if (file) {
             await changeProfileImage(supabase, file, user.id);
             broadcastUserChange(supabase);
             toast("Profile image changed.", {
-              description: "It may take a few minutes for the image to process.",
+              description:
+                "It may take a few minutes for the image to process.",
             });
             queryUtils.refetchQueries({ queryKey: ["profile"] });
             queryUtils.refetchQueries({ queryKey: ["members"] });

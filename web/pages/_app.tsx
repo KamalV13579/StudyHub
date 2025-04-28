@@ -9,10 +9,7 @@ import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-
-import { Analytics } from '@vercel/analytics/next';
-import Head from "next/head";
-
+import { Analytics } from "@vercel/analytics/next";
 
 const queryClient = new QueryClient();
 
