@@ -76,7 +76,7 @@ export default function ResourceDetailPage({ user }: Props) {
 
   return (
     <div className="flex h-screen">
-      <div className="w-60 h-full flex-shrink-0 border-r overflow-y-auto">
+      <div className="ml-[70px] h-full flex-shrink-0 border-r overflow-y-auto">
         <CourseSidebar
           user={user}
           course={course}
