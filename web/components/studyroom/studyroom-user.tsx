@@ -28,10 +28,17 @@ export default function StudyRoomUserView({
         <a className="font-semibold truncate flex-1 min-w-0 max-w-[70px]">
           {profile.name}
         </a>
-        {isAdmin && <Crown className="ml-1 text-amber-400 shrink-0" />}
-        {isTutor && (
-          <GraduationCap className="ml-1 text-emerald-400 shrink-0" />
+        {isAdmin && (
+          <span className="ml-1 shrink-0 p-1 rounded-full light:bg-gray-200">
+            <Crown className="h-4 w-4 text-amber-400" />
+          </span>
         )}
+        {isTutor && (
+          <span className="ml-1 shrink-0 p-1 rounded-full light:bg-gray-200">
+            <GraduationCap className="h-4 w-4 text-emerald-400" />
+          </span>
+        )}
+
       </div>
     </SidebarMenuButton>
   );
