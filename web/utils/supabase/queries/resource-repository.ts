@@ -174,7 +174,15 @@ export const handleResourceVote = async (
       throw new Error(insertError.message);
     }
   } else if (existingVote[0].vote === voteValue) {
-    // Same vote exists, delete to "unvote"
+    // this update is a work around to have it to the realtime works on deletes
+    const { error: updateError } = await supabase
+      .from("resource_vote")
+      .update({ vote: 0 })
+      .eq("id", existingVote[0].id);
+    if (updateError) {
+      console.log("update error");
+      throw new Error(updateError.message);
+    }
     const { error: deleteError } = await supabase
       .from("resource_vote")
       .delete()
@@ -184,7 +192,6 @@ export const handleResourceVote = async (
       throw new Error(deleteError.message);
     }
   } else {
-    // Different vote exists, update it
     const { error: updateError } = await supabase
       .from("resource_vote")
       .update({ vote: voteValue })
@@ -209,7 +216,40 @@ export const getResourceVoteCount = async (
 
   if (!data) return 0;
 
-  // Sum all votes (votes can be +1 or -1)
   const total = data.reduce((sum, v) => sum + (v.vote ?? 0), 0);
   return total;
 };
+
+export const getUserResourceVote = async (
+  supabase: SupabaseClient,
+  resourceId: string,
+  profileId: string
+): Promise<1 | -1 | null> => {
+  const { data, error } = await supabase
+    .from("resource_vote")
+    .select("vote")
+    .eq("resource_id", resourceId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(error.message);
+  }
+
+  return data?.vote ?? null;
+};
+
+export const deleteResource = async (
+  supabase: SupabaseClient,
+  resourceId: string
+) => {
+  const { error } = await supabase
+    .from("resource")
+    .delete()
+    .eq("id", resourceId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+};
+

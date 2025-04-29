@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Trash } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { getResourceVoteCount, handleResourceVote } from "@/utils/supabase/queries/resource-repository";
+import {
+  getResourceVoteCount,
+  getUserResourceVote,
+  handleResourceVote,
+  deleteResource,
+} from "@/utils/supabase/queries/resource-repository";
 import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 type ResourceDetailCardProps = {
   resource: {
@@ -22,21 +28,45 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
   const supabase = useSupabase();
   const queryClient = useQueryClient();
 
-  const { data: voteCount = 0 } = useQuery({
+  const { data: voteCount = 0, refetch: refetchVoteCount } = useQuery({
     queryKey: ["voteCount", resource.id],
     queryFn: () => getResourceVoteCount(supabase, resource.id),
     enabled: !!resource.id,
   });
 
+  const { data: userVote, refetch: refetchUserVote } = useQuery({
+    queryKey: ["userVote", resource.id, user.id],
+    queryFn: () => getUserResourceVote(supabase, resource.id, user.id),
+    enabled: !!resource.id && !!user.id,
+  });
+
+  const [voteInProgress, setVoteInProgress] = useState(false);
+
   const handleVote = async (voteValue: 1 | -1, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!user?.id) return;
+    if (!user?.id || voteInProgress) return;
 
+    setVoteInProgress(true);
     try {
       await handleResourceVote(supabase, resource.id, user.id, voteValue);
-      queryClient.invalidateQueries({ queryKey: ["voteCount", resource.id] }); // Refresh vote count
+      await refetchVoteCount();
+      await refetchUserVote();
     } catch (err) {
       console.error("Failed to submit vote:", err);
+    } finally {
+      setVoteInProgress(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this resource?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteResource(supabase, resource.id);
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+    } catch (error) {
+      console.error("Failed to delete resource:", error);
     }
   };
 
@@ -44,6 +74,33 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
     const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/resources/${filePath}`;
     window.open(url, "_blank");
   };
+
+  useEffect(() => {
+    if (!resource.id) return;
+
+    const channel = supabase
+      .channel(`resource_vote_${resource.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "resource_vote",
+        },
+        (payload) => {
+          const newId = (payload.new as any)?.resource_id;
+          const oldId = (payload.old as any)?.resource_id;
+          if (newId === resource.id || oldId === resource.id) {
+            refetchVoteCount();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [resource.id, supabase, refetchVoteCount]);
 
   let files: string[] = [];
   try {
@@ -81,19 +138,41 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
           ))}
         </div>
       ) : (
-        <div className="text-sm text-muted-foreground">
-          No files available for this resource.
-        </div>
+        <div className="text-sm text-muted-foreground">No files available for this resource.</div>
       )}
 
-      <div className="flex items-center justify-center gap-4 mt-6">
-        <Button variant="ghost" size="icon" onClick={(e) => handleVote(1, e)}>
-          <ArrowUp className="h-5 w-5" />
-        </Button>
-        <span className="text-sm">{voteCount}</span>
-        <Button variant="ghost" size="icon" onClick={(e) => handleVote(-1, e)}>
-          <ArrowDown className="h-5 w-5" />
-        </Button>
+      <div className="flex items-center justify-between mt-6">
+        <div className="flex items-center gap-4 mx-auto">
+          <Button
+            variant={userVote === 1 ? "default" : "ghost"}
+            size="icon"
+            disabled={voteInProgress}
+            onClick={(e) => handleVote(1, e)}
+          >
+            <ArrowUp className="h-5 w-5" />
+          </Button>
+          <span className="text-sm">{voteCount}</span>
+          <Button
+            variant={userVote === -1 ? "default" : "ghost"}
+            size="icon"
+            disabled={voteInProgress}
+            onClick={(e) => handleVote(-1, e)}
+          >
+            <ArrowDown className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {user.id === resource.uploaded_by && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            className="flex items-center gap-2"
+          >
+            <Trash className="h-4 w-4" />
+            Delete
+          </Button>
+        )}
       </div>
     </Card>
   );
