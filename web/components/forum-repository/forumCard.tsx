@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { ForumPost } from "@/utils/supabase/models/forum-post";
 import { PostAuthorDisplay } from "@/components/forum-repository/postAuthorDisplay";
-import { deleteForumPost } from "@/utils/supabase/queries/forum-post";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Paperclip } from "lucide-react";
+import { deleteForum } from "@/utils/supabase/queries/forum";
 
 type ForumCardProps = {
   post: ForumPost;
@@ -41,7 +41,8 @@ export function ForumCard({ post, courseId, supabase, user, repositoryId }: Foru
 
   const confirmDelete = async () => {
     try {
-      await deleteForumPost(supabase, post.id);
+      await deleteForum(supabase, post.forum_id);
+
       toast.success("Post deleted successfully.");
       queryClient.invalidateQueries({ queryKey: ["forumPosts", repositoryId] });
     } catch (error) {

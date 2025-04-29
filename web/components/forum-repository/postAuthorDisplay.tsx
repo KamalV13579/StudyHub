@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { getOrUpsertForumMembershipAnonymousStatus } from "@/utils/supabase/queries/forum-membership";
+import { getForum } from "@/utils/supabase/queries/forum";
 
 export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { supabase: SupabaseClient, forumId: string, authorId: string, createdAt: string }) => {
   const [displayName, setDisplayName] = useState<string>('Loading...');
@@ -8,9 +9,18 @@ export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { 
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
 
     const fetchStatusAndName = async () => {
-      setIsLoading(true);
+      try {
+        await getForum(supabase, forumId);
+      } catch (error) {
+        console.error("Error fetching forum data:", error);
+        if (isMounted) { setDisplayName("Unknown Forum"); setIsLoading(false); }
+
+        return;
+      }
+
       try {
         const isAnonymous = await getOrUpsertForumMembershipAnonymousStatus(supabase, forumId, authorId);
         let name = 'Anonymous';
@@ -46,10 +56,7 @@ export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { 
     };
 
     fetchStatusAndName();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [supabase, forumId, authorId]);
 
   return (

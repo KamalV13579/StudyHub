@@ -190,6 +190,7 @@ export default function ForumPage({ user }: ForumPageProps) {
                       supabase={supabase}
                       forumId={forumId}
                       originalPostAuthorId={post.author_id}
+                      userId={user.id}
                     />
                   ))
                 ) : (

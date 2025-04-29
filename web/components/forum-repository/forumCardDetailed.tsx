@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ForumPost } from "@/utils/supabase/models/forum-post";
 import { PostAuthorDisplay } from "@/components/forum-repository/postAuthorDisplay";
-import { deleteForumPost } from "@/utils/supabase/queries/forum-post";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -24,6 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { Paperclip } from "lucide-react";
 import { useRouter } from "next/router";
+import { deleteForum } from "@/utils/supabase/queries/forum";
+import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 
 type ForumCardDetailedProps = {
   post: ForumPost;
@@ -39,7 +40,7 @@ export function ForumCardDetailed({
   courseId,
 }: ForumCardDetailedProps) {
   const queryClient = useQueryClient();
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const isAuthor = user.id === post.author_id;
   const isDeleted = post.title === "DELETED" && post.content === "DELETED";
@@ -52,10 +53,13 @@ export function ForumCardDetailed({
 
   const confirmDelete = async () => {
     try {
-      await deleteForumPost(supabase, post.id);
+      const repo = await getForumRepository(supabase, courseId);
+      router.push(`/course/${courseId}/forum-repository/${repo.id}`);
+
+      await deleteForum(supabase, post.forum_id);
+
       toast.success("Post deleted successfully.");
-      queryClient.invalidateQueries({ queryKey: ["forumPost", post.forum_id] });
-      router.push(`/course/${courseId}/forum-repository`);
+      queryClient.invalidateQueries({ queryKey: ["forumPosts", repo.id] });
     } catch (error) {
       console.error("Failed to delete post:", error);
       toast.error("Failed to delete post.");

@@ -35,3 +35,8 @@ export const createForumComment = async (
   }
   return ForumCommentSchema.parse(data);
 };
+
+export const deleteForumComment = async (supabase: SupabaseClient, commentId: string): Promise<void> => {
+  const { error } = await supabase.from("forum_comment").delete().eq("id", commentId);
+  if (error) throw new Error(error.message ?? "Failed to delete forum comment");
+};
