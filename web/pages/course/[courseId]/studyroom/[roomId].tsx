@@ -341,7 +341,7 @@ export default function StudyRoomPage({
 
   useEffect(() => {
     if (!studyRoomId) return;
-  
+
     const roomDeleteSub = supabase
       .channel(`room-deleted:${studyRoomId}`)
       .on(
@@ -357,7 +357,7 @@ export default function StudyRoomPage({
         }
       )
       .subscribe();
-  
+
     return () => {
       supabase.removeChannel(roomDeleteSub);
     };
@@ -519,7 +519,6 @@ export default function StudyRoomPage({
 
           const pendingMessage = draftMessageText;
           const pendingFile = selectedFile;
-
 
           setDraftMessageText("");
           setSelectedFile(null);
@@ -751,6 +750,8 @@ export default function StudyRoomPage({
                 studyRoomMembers={members ?? []}
                 onlineUserIds={onlineUsers}
                 userId={user.id}
+                courseId={courseId as string}
+                supabase={supabase}
                 className="overflow-visible w-[270px]"
               />
             </div>

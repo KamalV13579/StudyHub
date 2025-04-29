@@ -60,12 +60,9 @@ export default function ResourceDetailPage({ user }: Props) {
     enabled: !!resourceId,
   });
 
-
   if (loadingCourse || loadingRepo || loadingResource) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading…
-      </div>
+      <div className="flex items-center justify-center h-screen">Loading…</div>
     );
   }
 
@@ -79,7 +76,7 @@ export default function ResourceDetailPage({ user }: Props) {
 
   return (
     <div className="flex h-screen">
-      <div className="w-60 h-full flex-shrink-0 border-r overflow-y-auto">
+      <div className="ml-[70px] h-full flex-shrink-0 border-r overflow-y-auto">
         <CourseSidebar
           user={user}
           course={course}
@@ -91,14 +88,20 @@ export default function ResourceDetailPage({ user }: Props) {
 
       <main className="flex-1 min-w-0 overflow-auto">
         <div className="mx-auto py-8 px-4 flex flex-col gap-8">
-          <Button asChild variant="outline" size="sm" className="max-w-3xs inline-flex">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="max-w-3xs inline-flex"
+          >
             {/* Button will render this <Link> instead of a <button> */}
-            <Link href={`/course/${courseId}/resource-repository/${repositoryId}`}>
+            <Link
+              href={`/course/${courseId}/resource-repository/${repositoryId}`}
+            >
               Back to Resources
             </Link>
           </Button>
-          <ResourceDetailCard resource={resource} user ={user}/>
-
+          <ResourceDetailCard resource={resource} user={user} />
         </div>
       </main>
     </div>
