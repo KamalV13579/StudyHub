@@ -12,11 +12,10 @@ export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { 
     setIsLoading(true);
 
     const fetchStatusAndName = async () => {
-      try {
-        await getForum(supabase, forumId);
-      } catch (error) {
-        console.error("Error fetching forum data:", error);
-        if (isMounted) { setDisplayName("Unknown Forum"); setIsLoading(false); }
+      try { await getForum(supabase, forumId); }
+      catch (error) {
+        console.warn("Error fetching forum data:", error);
+        if (isMounted) { setDisplayName("Deleted Forum"); setIsLoading(false); }
 
         return;
       }
@@ -35,9 +34,7 @@ export const PostAuthorDisplay = ({ supabase, forumId, authorId, createdAt }: { 
           if (profileError || !profile?.name) {
             console.warn(`Could not fetch username for ${authorId}, falling back to ID.`);
             name = `User ${authorId.substring(0, 8)}...`;
-          } else {
-            name = profile.name;
-          }
+          } else name = profile.name;
         }
 
         if (isMounted) {
