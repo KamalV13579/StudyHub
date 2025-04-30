@@ -109,9 +109,6 @@ export function ForumCard({
         {!isDeleted && (
           <div className="flex items-center justify-between mt-6">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                View Post
-              </Button>
               {post.attachment_url && (
                 <Button
                   variant="outline"

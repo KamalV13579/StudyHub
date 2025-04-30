@@ -11,6 +11,7 @@ import {
 import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 type ResourceDetailCardProps = {
   resource: {
@@ -30,6 +31,11 @@ export function ResourceDetailCard({
 }: ResourceDetailCardProps) {
   const supabase = useSupabase();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const { courseId } = router.query;
+  const { resource_id } = router.query;
+  
+
 
   const { data: voteCount = 0, refetch: refetchVoteCount } = useQuery({
     queryKey: ["voteCount", resource.id],
@@ -70,6 +76,7 @@ export function ResourceDetailCard({
     try {
       await deleteResource(supabase, resource.id);
       queryClient.invalidateQueries({ queryKey: ["resources"] });
+      router.push(`/course/${courseId}/resource-repository/${resource_id}`);
     } catch (error) {
       console.error("Failed to delete resource:", error);
     }
