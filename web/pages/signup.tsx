@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { AtSign } from "lucide-react";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useState, useRef, useEffect, memo, forwardRef } from "react";
@@ -52,6 +53,14 @@ export default function SignUpPage() {
 
   const [selectedMajor, setSelectedMajor] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
+  const { resolvedTheme } = useTheme()
+
+  // Determine which logo to show based on theme
+  const logoUrl =
+  resolvedTheme === "light"
+    ? "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//image.png"
+    : "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png";
+
 
   const majors = [
     { value: "aerospace-studies", label: "Aerospace Studies" },
@@ -173,7 +182,7 @@ export default function SignUpPage() {
               >
                 <div className="flex w-40 items-center justify-center rounded-md pb-5">
                   <img
-                    src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
+                    src={logoUrl}
                     alt="Logo"
                     className="h-full w-full object-contain"
                   />

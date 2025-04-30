@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const supabase = createSupabaseComponentClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { resolvedTheme } = useTheme();
 
   const logIn = async () => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -30,6 +32,12 @@ export default function LoginPage() {
     }
   };
 
+  // Determine which logo to show based on theme
+  const logoUrl =
+    resolvedTheme === "light"
+      ? "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//image.png"
+      : "https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png";
+
   return (
     <div className="flex  min-h-[calc(100svh-164px)] flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
       <div className="w-full max-w-sm">
@@ -42,7 +50,7 @@ export default function LoginPage() {
               >
                 <div className="flex w-40 items-center justify-center rounded-md">
                   <img
-                    src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
+                    src={logoUrl}
                     alt="Logo"
                     className="h-full w-full object-contain"
                   />
