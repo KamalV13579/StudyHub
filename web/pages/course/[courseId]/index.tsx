@@ -74,16 +74,13 @@ export default function CourseHomePage({ user }: PageProps) {
       </div>
 
       <div className="flex w-full h-screen flex-col items-center">
-        {/* Header */}
         <header className="flex items-center max-w-5xl shadow-sm px-8 py-6 rounded">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             {course.course_code}: {course.course_name}
           </h1>
         </header>
 
-        {/* Main content */}
         <main className="flex-grow w-full max-w-5xl px-8 py-6 space-y-8">
-          {/* Quick Links */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <button
               onClick={handleStudyClick}
@@ -122,7 +119,6 @@ export default function CourseHomePage({ user }: PageProps) {
             </Link>
           </div>
 
-          {/* Announcements */}
           <section className="shadow border rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
               Announcements
