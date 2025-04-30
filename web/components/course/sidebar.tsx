@@ -293,7 +293,7 @@ export function CourseSidebar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
+                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase cursor-pointer"
                 onClick={handleOpenResourceRepository}
               >
                 <span>Resource Repository</span>
@@ -310,7 +310,7 @@ export function CourseSidebar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
+                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase cursor-pointer"
                 onClick={() => handleOpenForumRepository()}
               >
                 <span>Forums</span>
@@ -318,51 +318,7 @@ export function CourseSidebar({
               </Button>
             </SidebarHeader>
           </SidebarGroup>
-
           <Separator />
-
-          {/* Tutoring Section
-          {/* !!!!!!!!!!!!!!!!!!!!!TO BE IMPLEMENTED!!!!!!!!!!!!!!!!!!!!! */}
-          {/* <SidebarGroup>
-            <SidebarHeader className="px-0 pt-1 pb-1">
-              <div
-                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
-              >
-                <span>Tutoring</span>
-                <Button variant="ghost" size="sm" className="p-1">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </SidebarHeader>
-            <Label className="px-4 text-xs text-muted-foreground">
-              Press &apos;+&apos; to request a tutor
-            </Label>
-            <SidebarGroupContent className="px-2 py-1 list-none space-y-1">
-              <p className="cursor-default">My Tutoring Request 1</p>
-              <p className="cursor-default">My Tutoring Request 2</p>
-              <p className="cursor-default">My Tutoring Request 3</p>
-              <p className="cursor-default">My Tutoring Request 4</p>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <Separator /> */}
-
-          {/* Tutoring Requests Section */}
-          {/* !!!!!!!!!!!!!!!!!!!!!TO BE IMPLEMENTED!!!!!!!!!!!!!!!!!!!!! */}
-          {/* <SidebarGroup>
-            <SidebarHeader className="px-0 pt-1 pb-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full flex items-center justify-between text-sm font-semibold text-muted-foreground uppercase"
-              >
-                <span>Tutoring Requests</span>
-              </Button>
-            </SidebarHeader>
-            <SidebarGroupContent className="px-2 py-1 list-none space-y-1">
-              <p className="cursor-default">No requests (placeholder)</p>
-            </SidebarGroupContent>
-          </SidebarGroup> */}
         </SidebarContent>
       </ScrollArea>
     </Sidebar>

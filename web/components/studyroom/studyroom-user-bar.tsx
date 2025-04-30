@@ -21,12 +21,17 @@ import { ScrollArea } from "../ui/scroll-area";
 import { z } from "zod";
 import { Profile } from "@/utils/supabase/models/profile";
 import { StudyRoom } from "@/utils/supabase/models/studyroom";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 type StudyRoomUserSidebarProps = {
   studyRoom?: z.infer<typeof StudyRoom>;
   studyRoomMembers: z.infer<typeof Profile>[];
   onlineUserIds: string[];
   userId: string;
+  courseId: string; // Add courseId to props
+  supabase: SupabaseClient; // Add supabase client to props
 } & React.ComponentProps<typeof Sidebar>;
 
 export function StudyRoomUserSidebar({
@@ -34,8 +39,34 @@ export function StudyRoomUserSidebar({
   studyRoomMembers,
   onlineUserIds,
   userId,
+  courseId,
+  supabase,
   ...props
 }: StudyRoomUserSidebarProps) {
+  const { data: courseMembers } = useQuery({
+    queryKey: ["courseMembers", courseId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("course_membership")
+        .select("profile_id, is_tutor")
+        .eq("course_id", courseId);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Create a map for quick tutor status lookup
+  const tutorStatusMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    courseMembers?.forEach((member) => {
+      map.set(member.profile_id, member.is_tutor);
+    });
+    return map;
+  }, [courseMembers]);
+
+  const isTutor = (userId: string) => tutorStatusMap.get(userId) || false;
+
   const onlineUsers = studyRoomMembers.filter(
     (member) => userId === member.id || onlineUserIds.includes(member.id)
   );
@@ -71,6 +102,7 @@ export function StudyRoomUserSidebar({
                       <StudyRoomUserView
                         profile={user}
                         isAdmin={studyRoom?.creator_id === user.id}
+                        isTutor={isTutor(user.id)}
                       />
                     </ProfilePopover>
                   </SidebarMenuItem>

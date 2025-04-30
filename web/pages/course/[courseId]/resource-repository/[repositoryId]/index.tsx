@@ -1,7 +1,10 @@
 import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
 import { getCourseInfo } from "@/utils/supabase/queries/course";
-import { getResourceRepository, getResourcesForRepository } from "@/utils/supabase/queries/resource-repository";
+import {
+  getResourceRepository,
+  getResourcesForRepository,
+} from "@/utils/supabase/queries/resource-repository";
 import { getStudyRooms } from "@/utils/supabase/queries/studyroom";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
 import { useSupabase } from "@/lib/supabase";
@@ -53,16 +56,24 @@ export default function ResourceRepositoryHomePage({
   });
 
   if (loadingCourse || loadingRepository) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   if (!course || !resourceRepository) {
-    return <div className="flex justify-center items-center h-screen">Failed to load course information.</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Failed to load course information.
+      </div>
+    );
   }
 
   return (
     <div className="flex h-screen">
-      <div className="w-60 h-full flex-shrink-0 border-r overflow-y-auto">
+      <div className="ml-[70px] h-full flex-shrink-0 border-r overflow-y-auto">
         <CourseSidebar
           user={user}
           course={course}
