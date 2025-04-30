@@ -1,25 +1,32 @@
+import { useRouter } from "next/router";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowUp, ArrowDown, Trash } from "lucide-react";
-import { useRouter } from "next/router";
-import { useSupabase } from "@/lib/supabase";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import {
   getResourceVoteCount,
-  handleResourceVote,
   getUserResourceVote,
+  handleResourceVote,
   deleteResource,
 } from "@/utils/supabase/queries/resource-repository";
+import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+
+interface ResourceVotePayload {
+  resource_id: string;
+  profile_id?: string;
+  value?: number;
+}
 
 type ResourceCardProps = {
   resource: {
     id: string;
     title: string;
     description: string;
-    uploaded_by: string;
+    repository_id: string;
     handle?: string;
+    uploaded_by: string;
   };
   user: User;
 };
@@ -82,7 +89,6 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
     }
   };
 
-  // 📡 Realtime voting updates
   useEffect(() => {
     if (!resource.id) return;
 
@@ -91,25 +97,22 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
       .on(
         "postgres_changes",
         {
-          event: "*", // listen to INSERT, UPDATE, DELETE
+          event: "*",
           schema: "public",
           table: "resource_vote",
         },
         (payload) => {
-          console.log("Vote change detected!", payload);
-
-          const newResourceId = (payload.new as any)?.resource_id;
-          const oldResourceId = (payload.old as any)?.resource_id;
-
-          if (newResourceId === resource.id || oldResourceId === resource.id) {
-            refetchVoteCount(); // ✅ Only refetch if it's related to this resource
+          const newId = (payload.new as ResourceVotePayload)?.resource_id;
+          const oldId = (payload.old as ResourceVotePayload)?.resource_id;
+          if (newId === resource.id || oldId === resource.id) {
+            refetchVoteCount();
           }
         },
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel); // cleanup on unmount
+      supabase.removeChannel(channel);
     };
   }, [resource.id, supabase, refetchVoteCount]);
 
@@ -118,12 +121,10 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
       onClick={handleCardClick}
       className="w-full p-6 hover:shadow-lg cursor-pointer flex flex-col justify-between relative"
     >
-      {/* Uploaded By */}
       <div className="absolute top-4 right-4 text-xs text-muted-foreground">
         Uploaded by {resource.handle ?? "Unknown"}
       </div>
 
-      {/* Main content */}
       <div className="flex flex-col gap-2">
         <h2 className="text-xl font-semibold">{resource.title}</h2>
         <p className="text-muted-foreground text-sm">
@@ -133,9 +134,7 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
         </p>
       </div>
 
-      {/* Voting and Delete on the same row */}
       <div className="flex items-center justify-between mt-6">
-        {/* Voting Centered Group */}
         <div className="flex items-center gap-4 mx-auto">
           <Button
             variant={userVote === 1 ? "default" : "ghost"}
@@ -154,7 +153,6 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
           </Button>
         </div>
 
-        {/* Delete button to the far right */}
         {user.id === resource.uploaded_by && (
           <Button
             variant="destructive"
