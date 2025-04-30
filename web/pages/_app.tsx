@@ -9,6 +9,8 @@ import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
+import { Analytics } from '@vercel/analytics/next';
+
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,7 @@ export default function App({ Component, pageProps }: AppProps) {
             <SidebarInset>
               <Component {...pageProps} user = {user} />
               <Toaster />
+              <Analytics />
             </SidebarInset>
         </SidebarProvider>
       </ThemeProvider>
