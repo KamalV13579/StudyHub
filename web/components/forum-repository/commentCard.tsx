@@ -3,14 +3,21 @@ import { ForumComment } from "@/utils/supabase/models/forum-comment";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { CommentAuthorDisplay } from "@/components/forum-repository/commentAuthorDisplay";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { deleteForumComment } from "@/utils/supabase/queries/forum-comment";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 
 type CommentCardProps = {
   comment: ForumComment;
@@ -20,7 +27,13 @@ type CommentCardProps = {
   userId: string; // Add userId to props
 };
 
-export function CommentCard({ comment, supabase, forumId, originalPostAuthorId, userId }: CommentCardProps) {
+export function CommentCard({
+  comment,
+  supabase,
+  forumId,
+  originalPostAuthorId,
+  userId,
+}: CommentCardProps) {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -45,7 +58,6 @@ export function CommentCard({ comment, supabase, forumId, originalPostAuthorId, 
     }
   };
 
-
   return (
     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
       <Card
@@ -61,7 +73,7 @@ export function CommentCard({ comment, supabase, forumId, originalPostAuthorId, 
               size="icon"
               className={cn(
                 "absolute top-1 right-1 h-6 w-6 text-muted-foreground hover:text-destructive",
-                isHovering ? "visible" : "invisible"
+                isHovering ? "visible" : "invisible",
               )}
               onClick={handleDelete}
             >
@@ -88,12 +100,17 @@ export function CommentCard({ comment, supabase, forumId, originalPostAuthorId, 
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete the comment.
+            This action cannot be undone. This will permanently delete the
+            comment.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
+          <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={confirmDelete}>
+            Delete
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

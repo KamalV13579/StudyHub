@@ -56,7 +56,9 @@ export default function CourseHomePage({ user }: PageProps) {
     if (studyRooms.length > 0) {
       router.push(`/course/${courseId}/studyroom/${studyRooms[0].id}`);
     } else {
-      toast.error("No study rooms joined yet. Create one or copy a code from a classmate!");
+      toast.error(
+        "No study rooms joined yet. Create one or copy a code from a classmate!",
+      );
     }
   };
   return (

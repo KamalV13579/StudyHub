@@ -24,7 +24,10 @@ type ResourceDetailCardProps = {
   user: User;
 };
 
-export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) {
+export function ResourceDetailCard({
+  resource,
+  user,
+}: ResourceDetailCardProps) {
   const supabase = useSupabase();
   const queryClient = useQueryClient();
 
@@ -59,7 +62,9 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this resource?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this resource?",
+    );
     if (!confirmDelete) return;
 
     try {
@@ -93,7 +98,7 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
           if (newId === resource.id || oldId === resource.id) {
             refetchVoteCount();
           }
-        }
+        },
       )
       .subscribe();
 
@@ -138,7 +143,9 @@ export function ResourceDetailCard({ resource, user }: ResourceDetailCardProps) 
           ))}
         </div>
       ) : (
-        <div className="text-sm text-muted-foreground">No files available for this resource.</div>
+        <div className="text-sm text-muted-foreground">
+          No files available for this resource.
+        </div>
       )}
 
       <div className="flex items-center justify-between mt-6">

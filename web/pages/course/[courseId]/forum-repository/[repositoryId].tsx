@@ -17,7 +17,9 @@ type ForumRepositoryHomePageProps = {
   user: User;
 };
 
-export default function ForumRepositoryHomePage({ user }: ForumRepositoryHomePageProps) {
+export default function ForumRepositoryHomePage({
+  user,
+}: ForumRepositoryHomePageProps) {
   const router = useRouter();
   const courseId = router.query.courseId as string;
   const repositoryId = router.query.repositoryId as string;
@@ -54,11 +56,19 @@ export default function ForumRepositoryHomePage({ user }: ForumRepositoryHomePag
   });
 
   if (loadingCourse || loadingForumRepo) {
-     return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   if (!course || !forumRepository || !resourceRepository) {
-     return <div className="flex justify-center items-center h-screen">Failed to load course information.</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Failed to load course information.
+      </div>
+    );
   }
 
   return (

@@ -13,4 +13,3 @@ export const Resource = z.object({
 });
 
 export type Resource = z.infer<typeof Resource>;
-

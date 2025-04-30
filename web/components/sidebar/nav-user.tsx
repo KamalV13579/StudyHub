@@ -93,7 +93,7 @@ export function NavUser({ user }: NavUserProps) {
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
     toast(
-      `${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme applied`
+      `${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} theme applied`,
     );
   };
 
@@ -170,7 +170,7 @@ export function NavUser({ user }: NavUserProps) {
                       await changeProfileDisplayName(
                         supabase,
                         renameText,
-                        user.id
+                        user.id,
                       );
                       broadcastUserChange(supabase);
                       toast("Display name changed.");

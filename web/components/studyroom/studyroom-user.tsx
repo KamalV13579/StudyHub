@@ -38,7 +38,6 @@ export default function StudyRoomUserView({
             <GraduationCap className="h-4 w-4 text-emerald-400" />
           </span>
         )}
-
       </div>
     </SidebarMenuButton>
   );

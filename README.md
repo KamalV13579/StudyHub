@@ -1,21 +1,21 @@
 # StudyHub
- 
- > Developed by [Nickolas Bleykhman, Akksharvan Senthilkumar, Kamal Deep Vasireddy, Joseph Zheng]() for COMP 426: Modern Web Programming at UNC-Chapel Hill.
- 
- 
- ![TypeScript](https://img.shields.io/badge/-TypeScript-05122A?style=flat&logo=typescript)
- ![Next.js](https://img.shields.io/badge/-Next.js-05122A?style=flat&logo=nextdotjs)
- ![Shadcn/ui](https://img.shields.io/badge/-Shadcn_UI-05122A?style=flat&logo=shadcnui)
- ![Tailwind](https://img.shields.io/badge/-Tailwind-05122A?style=flat&logo=tailwindcss)
- ![Supabase](https://img.shields.io/badge/-Supabase-05122A?style=flat&logo=supabase)
- 
+
+> Developed by [Nickolas Bleykhman, Akksharvan Senthilkumar, Kamal Deep Vasireddy, Joseph Zheng]() for COMP 426: Modern Web Programming at UNC-Chapel Hill.
+
+![TypeScript](https://img.shields.io/badge/-TypeScript-05122A?style=flat&logo=typescript)
+![Next.js](https://img.shields.io/badge/-Next.js-05122A?style=flat&logo=nextdotjs)
+![Shadcn/ui](https://img.shields.io/badge/-Shadcn_UI-05122A?style=flat&logo=shadcnui)
+![Tailwind](https://img.shields.io/badge/-Tailwind-05122A?style=flat&logo=tailwindcss)
+![Supabase](https://img.shields.io/badge/-Supabase-05122A?style=flat&logo=supabase)
+
 ![StudyHub Logo](https://github.com/user-attachments/assets/ab385939-4af9-4ff9-b5ea-c2f305dce484)
 
- Welcome,  
- To the new frontier of learning.  
- ---
+Welcome,  
+ To the new frontier of learning.
 
-StudyHub is a web-app dedicated to students and educators alike. It serves as a centralized platform for users to share and expand their ideas. Whenever, wherever, or whatever it may be, StudyHub strives to make learning a better experience for all. 
+---
+
+StudyHub is a web-app dedicated to students and educators alike. It serves as a centralized platform for users to share and expand their ideas. Whenever, wherever, or whatever it may be, StudyHub strives to make learning a better experience for all.
 
  <img width="1800" alt="message 2 sent" src="https://github.com/user-attachments/assets/44609564-8940-4f02-b9d6-cc2c54e84a07" />
  
@@ -64,7 +64,6 @@ StudyHub is a web-app dedicated to students and educators alike. It serves as a 
   - Context-aware responses  
    Feel free to add other sections as you see fit!
 
-  ---
+---
 
-
-  ⬡ Without further ado, let the learning begin.
+⬡ Without further ado, let the learning begin.

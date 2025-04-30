@@ -6,7 +6,7 @@ import { getForums } from "@/utils/supabase/queries/forum";
 
 export const getForumPost = async (
   supabase: SupabaseClient,
-  forumId: string
+  forumId: string,
 ): Promise<z.infer<typeof ForumPostSchema>> => {
   const { data, error } = await supabase
     .from("forum_post")
@@ -19,7 +19,7 @@ export const getForumPost = async (
 
 export const getForumPostsByRepositoryId = async (
   supabase: SupabaseClient,
-  repositoryId: string
+  repositoryId: string,
 ): Promise<z.infer<typeof ForumPostSchema>[]> => {
   const forums = await getForums(supabase, repositoryId);
   if (!forums) throw new Error("No forums found");
@@ -40,7 +40,7 @@ export const createForumPost = async (
   authorId: string,
   title: string,
   content: string,
-  attachmentUrl: string | null = null
+  attachmentUrl: string | null = null,
 ): Promise<z.infer<typeof ForumPostSchema>> => {
   const payload = {
     forum_id: forumId,
@@ -60,7 +60,7 @@ export const createForumPost = async (
 
 export const deleteForumPost = async (
   supabase: SupabaseClient,
-  postId: string
+  postId: string,
 ): Promise<void> => {
   const { error } = await supabase.from("forum_post").delete().eq("id", postId);
   if (error) throw new Error(error.message ?? "Failed to delete forum post");

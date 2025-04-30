@@ -14,14 +14,14 @@ npx create-next-app@latest
 
 You will be asked some setup questions. Use the following answers:
 
-- *What is your project named?*  **web**
-- *Would you like to use TypeScript?* **Yes**
-- *Would you like to use ESLint?* **Yes**
-- *Would you like to use TailwindCSS?* **Yes**
-- *Would you like your code inside a `src/` directory?* **No**
-- *Would you like to use App Router? (recommended)* **No**
-- *Would you like to use Turbopack for `next dev`?* **Yes**
-- *Would you like to customize the import alias (`@/*` by default)?* **No**
+- _What is your project named?_ **web**
+- _Would you like to use TypeScript?_ **Yes**
+- _Would you like to use ESLint?_ **Yes**
+- _Would you like to use TailwindCSS?_ **Yes**
+- _Would you like your code inside a `src/` directory?_ **No**
+- _Would you like to use App Router? (recommended)_ **No**
+- _Would you like to use Turbopack for `next dev`?_ **Yes**
+- _Would you like to customize the import alias (`@/_` by default)?\* **No**
 
 This will create a new directory `/web`, containing the newly initialized Next.js application.
 
@@ -45,10 +45,10 @@ To install React Query, check out the instructions in [a05: Pokedex](https://com
 
 ### Supabase JS Client
 
-To follow the Supabase JS Client, follow the tutorial [here](https://supabase.com/docs/guides/auth/server-side/nextjs?queryGroups=router&router=pages). *Complete steps 1-3.*
+To follow the Supabase JS Client, follow the tutorial [here](https://supabase.com/docs/guides/auth/server-side/nextjs?queryGroups=router&router=pages). _Complete steps 1-3._
 
 ### Shadcn UI
 
 To install Shadcn UI, follow the instructions [here](https://ui.shadcn.com/docs/installation/next). This should also install Lucide icons. I recommend selecting the `New York` style with the `Zinc` color to start out with, but you are free to edit this or choose any options you would prefer for your project.
 
-*To set up light mode / dark mode in Shadcn, follow their official guide [here](https://ui.shadcn.com/docs/dark-mode/next).
+\*To set up light mode / dark mode in Shadcn, follow their official guide [here](https://ui.shadcn.com/docs/dark-mode/next).

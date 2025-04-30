@@ -5,7 +5,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 // Retrieves the list of courses the current user has joined.
 export const getCourses = async (
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<z.infer<typeof Course>[]> => {
   const { data: membershipData, error: membershipError } = await supabase
     .from("course_membership")
@@ -14,13 +14,13 @@ export const getCourses = async (
 
   if (membershipError || !membershipData) {
     throw new Error(
-      `Error fetching course memberships: ${membershipError?.message}`
+      `Error fetching course memberships: ${membershipError?.message}`,
     );
   }
 
   // Extract the list of course IDs.
   const courseIds = membershipData.map(
-    (membership: { course_id: string }) => membership.course_id
+    (membership: { course_id: string }) => membership.course_id,
   );
 
   // Fetch the full course details from the 'course' table for those IDs.
@@ -43,7 +43,7 @@ export const joinCourse = async (
   supabase: SupabaseClient,
   courseCode: string,
   isTutor: boolean = false,
-  userId: string
+  userId: string,
 ): Promise<JoinedCourse> => {
   // Look up the course by course_code.
   const { data: course, error: courseError } = await supabase
@@ -68,7 +68,7 @@ export const joinCourse = async (
   if (membershipQueryError) {
     console.error(
       "[joinCourse] Error checking existing membership:",
-      membershipQueryError
+      membershipQueryError,
     );
   }
 
@@ -96,7 +96,7 @@ export const joinCourse = async (
 // Retrieve the course details by its UUID.
 export const getCourseInfo = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
 ): Promise<z.infer<typeof Course>> => {
   const { data, error } = await supabase
     .from("course")
@@ -114,7 +114,7 @@ export const getCourseInfo = async (
 export const deleteCourse = async (
   supabase: SupabaseClient,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   // 1) Find all rooms they own in this course *before* you drop their membership
   const { data: ownedMemberships, error: membershipError } = await supabase
@@ -136,7 +136,7 @@ export const deleteCourse = async (
       .in("id", roomIdsToDelete);
     if (roomDeleteError) {
       throw new Error(
-        `Error deleting owned study rooms: ${roomDeleteError.message}`
+        `Error deleting owned study rooms: ${roomDeleteError.message}`,
       );
     }
   }
@@ -156,7 +156,7 @@ export const deleteCourse = async (
 export async function toggleInstructorStatus(
   supabase: SupabaseClient,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   const { data: membership, error: membershipError } = await supabase
     .from("course_membership")
@@ -167,7 +167,7 @@ export async function toggleInstructorStatus(
 
   if (membershipError || !membership) {
     throw new Error(
-      `Membership not found or error: ${membershipError?.message ?? ""}`
+      `Membership not found or error: ${membershipError?.message ?? ""}`,
     );
   }
 
@@ -188,7 +188,7 @@ export async function toggleInstructorStatus(
 export const getCourseMembership = async (
   supabase: SupabaseClient,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<{ is_tutor: boolean }> => {
   const { data, error } = await supabase
     .from("course_membership")

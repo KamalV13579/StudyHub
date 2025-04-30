@@ -15,7 +15,13 @@ type ForumRepositoryLayoutProps = {
   courseId: string;
 };
 
-export function ForumRepositoryLayout({ posts, isLoading, user, repositoryId, courseId }: ForumRepositoryLayoutProps) {
+export function ForumRepositoryLayout({
+  posts,
+  isLoading,
+  user,
+  repositoryId,
+  courseId,
+}: ForumRepositoryLayoutProps) {
   const supabase = useSupabase();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -45,17 +51,18 @@ export function ForumRepositoryLayout({ posts, isLoading, user, repositoryId, co
               No posts yet. Be the first to create one!
             </p>
           )}
-          {posts && posts.map((post, index) => (
-            <div key = {post.id} className = {index > 0 ? "mt-6" : ""}>
-              <ForumCard
-                post={post}
-                courseId={courseId}
-                supabase={supabase}
-                user={user}
-                repositoryId={repositoryId}
-              />
-            </div>
-          ))}
+          {posts &&
+            posts.map((post, index) => (
+              <div key={post.id} className={index > 0 ? "mt-6" : ""}>
+                <ForumCard
+                  post={post}
+                  courseId={courseId}
+                  supabase={supabase}
+                  user={user}
+                  repositoryId={repositoryId}
+                />
+              </div>
+            ))}
         </div>
       )}
     </div>

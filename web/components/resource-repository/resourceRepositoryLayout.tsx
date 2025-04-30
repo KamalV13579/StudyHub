@@ -23,22 +23,29 @@ type ResourceRepositoryLayoutProps = {
 
 const RESOURCES_PER_PAGE = 50;
 
-export function ResourceRepositoryLayout({ resources, user, repositoryId }: ResourceRepositoryLayoutProps) {
+export function ResourceRepositoryLayout({
+  resources,
+  user,
+  repositoryId,
+}: ResourceRepositoryLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [showOnlyMyResources, setShowOnlyMyResources] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredResources = resources.filter((resource) => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesOwner = !showOnlyMyResources || resource.uploaded_by === user.id;
+    const matchesSearch = resource.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesOwner =
+      !showOnlyMyResources || resource.uploaded_by === user.id;
     return matchesSearch && matchesOwner;
   });
 
   const totalPages = Math.ceil(filteredResources.length / RESOURCES_PER_PAGE);
   const paginatedResources = filteredResources.slice(
     (currentPage - 1) * RESOURCES_PER_PAGE,
-    currentPage * RESOURCES_PER_PAGE
+    currentPage * RESOURCES_PER_PAGE,
   );
 
   const handleNextPage = () => {

@@ -63,13 +63,15 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
 
   const handleCardClick = () => {
     router.push(
-      `/course/${courseId}/resource-repository/${repositoryId}/resource/${resource.id}`
+      `/course/${courseId}/resource-repository/${repositoryId}/resource/${resource.id}`,
     );
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const confirmDelete = window.confirm("Are you sure you want to delete this resource?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this resource?",
+    );
     if (!confirmDelete) return;
 
     try {
@@ -81,35 +83,35 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
   };
 
   // 📡 Realtime voting updates
- useEffect(() => {
-  if (!resource.id) return;
+  useEffect(() => {
+    if (!resource.id) return;
 
-  const channel = supabase
-    .channel(`resource_vote_${resource.id}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*', // listen to INSERT, UPDATE, DELETE
-        schema: 'public',
-        table: 'resource_vote',
-      },
-      (payload) => {
-        console.log("Vote change detected!", payload);
+    const channel = supabase
+      .channel(`resource_vote_${resource.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // listen to INSERT, UPDATE, DELETE
+          schema: "public",
+          table: "resource_vote",
+        },
+        (payload) => {
+          console.log("Vote change detected!", payload);
 
-        const newResourceId = (payload.new as any)?.resource_id;
-        const oldResourceId = (payload.old as any)?.resource_id;
+          const newResourceId = (payload.new as any)?.resource_id;
+          const oldResourceId = (payload.old as any)?.resource_id;
 
-        if (newResourceId === resource.id || oldResourceId === resource.id) {
-          refetchVoteCount(); // ✅ Only refetch if it's related to this resource
-        }
-      }
-    )
-    .subscribe();
+          if (newResourceId === resource.id || oldResourceId === resource.id) {
+            refetchVoteCount(); // ✅ Only refetch if it's related to this resource
+          }
+        },
+      )
+      .subscribe();
 
-  return () => {
-    supabase.removeChannel(channel); // cleanup on unmount
-  };
-}, [resource.id, supabase, refetchVoteCount]);
+    return () => {
+      supabase.removeChannel(channel); // cleanup on unmount
+    };
+  }, [resource.id, supabase, refetchVoteCount]);
 
   return (
     <Card

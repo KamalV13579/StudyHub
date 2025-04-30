@@ -5,7 +5,7 @@ import { Resource } from "@/utils/supabase/models/resource";
 
 export const getResourceRepository = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
 ): Promise<z.infer<typeof ResourceRepository>> => {
   const { data: resourceRepository, error: resourceRepositoryError } =
     await supabase
@@ -16,7 +16,7 @@ export const getResourceRepository = async (
 
   if (resourceRepositoryError || !resourceRepository) {
     throw new Error(
-      `Error fetching profile: ${resourceRepositoryError?.message}`
+      `Error fetching profile: ${resourceRepositoryError?.message}`,
     );
   }
   return ResourceRepository.parse(resourceRepository);
@@ -24,7 +24,7 @@ export const getResourceRepository = async (
 
 export const getResourceRepositoryById = async (
   supabase: SupabaseClient,
-  repositoryId: string
+  repositoryId: string,
 ): Promise<z.infer<typeof ResourceRepository>> => {
   const { data, error } = await supabase
     .from("resource_repository")
@@ -41,7 +41,7 @@ export const getResourceRepositoryById = async (
 
 export const getResourcesForRepository = async (
   supabase: SupabaseClient,
-  repositoryId: string
+  repositoryId: string,
 ): Promise<z.infer<typeof Resource>[]> => {
   const { data, error } = await supabase
     .from("resource")
@@ -58,7 +58,7 @@ export const getResourcesForRepository = async (
     profiles:uploaded_by (
       handle
     )
-  `
+  `,
     )
     .eq("repository_id", repositoryId)
     .order("created_at", { ascending: false });
@@ -76,7 +76,7 @@ export const getResourcesForRepository = async (
 
 export const getResourceDetail = async (
   supabase: SupabaseClient,
-  resourceId: string
+  resourceId: string,
 ): Promise<z.infer<typeof Resource>> => {
   const { data, error } = await supabase
     .from("resource")
@@ -93,7 +93,7 @@ export const getResourceDetail = async (
     profiles:uploaded_by (
       handle
     )
-  `
+  `,
     )
     .eq("id", resourceId);
 
@@ -114,7 +114,7 @@ export const getResourceDetail = async (
 export const uploadResourceFile = async (
   supabase: SupabaseClient,
   file: File,
-  resourceId: string
+  resourceId: string,
 ): Promise<string> => {
   const filePath = `${resourceId}/${file.name}`;
 
@@ -137,7 +137,7 @@ export const createResourceEntry = async (
     repository_id: string;
     file_url: string;
     type: string;
-  }
+  },
 ) => {
   const { error } = await supabase.from("resource").insert([resourceData]);
 
@@ -148,7 +148,7 @@ export const handleResourceVote = async (
   supabase: SupabaseClient,
   resourceId: string,
   profileId: string,
-  voteValue: 1 | -1
+  voteValue: 1 | -1,
 ) => {
   const { data: existingVote, error: fetchError } = await supabase
     .from("resource_vote")
@@ -205,7 +205,7 @@ export const handleResourceVote = async (
 
 export const getResourceVoteCount = async (
   supabase: SupabaseClient,
-  resourceId: string
+  resourceId: string,
 ): Promise<number> => {
   const { data, error } = await supabase
     .from("resource_vote")
@@ -223,7 +223,7 @@ export const getResourceVoteCount = async (
 export const getUserResourceVote = async (
   supabase: SupabaseClient,
   resourceId: string,
-  profileId: string
+  profileId: string,
 ): Promise<1 | -1 | null> => {
   const { data, error } = await supabase
     .from("resource_vote")
@@ -241,7 +241,7 @@ export const getUserResourceVote = async (
 
 export const deleteResource = async (
   supabase: SupabaseClient,
-  resourceId: string
+  resourceId: string,
 ) => {
   const { error } = await supabase
     .from("resource")
@@ -252,4 +252,3 @@ export const deleteResource = async (
     throw new Error(error.message);
   }
 };
-

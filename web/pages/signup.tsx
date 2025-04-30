@@ -6,13 +6,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
 import { AtSign } from "lucide-react";
@@ -21,19 +21,23 @@ import { useRouter } from "next/router";
 import React, { useState, useRef, useEffect, memo, forwardRef } from "react";
 
 const SearchBar = memo(
-  forwardRef<HTMLInputElement, { value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }>(
-    ({ value, onChange }, ref) => (
-      <div className="p-2">
-        <Input
-          ref={ref}
-          placeholder="Search majors..."
-          value={value}
-          onChange={onChange}
-          className="w-full"
-        />
-      </div>
-    )
-  )
+  forwardRef<
+    HTMLInputElement,
+    {
+      value: string;
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    }
+  >(({ value, onChange }, ref) => (
+    <div className="p-2">
+      <Input
+        ref={ref}
+        placeholder="Search majors..."
+        value={value}
+        onChange={onChange}
+        className="w-full"
+      />
+    </div>
+  )),
 );
 SearchBar.displayName = "SearchBar";
 
@@ -51,7 +55,10 @@ export default function SignUpPage() {
 
   const majors = [
     { value: "aerospace-studies", label: "Aerospace Studies" },
-    { value: "african-studies", label: "African, African American, and Diaspora Studies" },
+    {
+      value: "african-studies",
+      label: "African, African American, and Diaspora Studies",
+    },
     { value: "american-studies", label: "American Studies" },
     { value: "anthropology", label: "Anthropology" },
     { value: "applied-sciences", label: "Applied Sciences" },
@@ -82,12 +89,21 @@ export default function SignUpPage() {
     { value: "exercise-sport-science", label: "Exercise and Sport Science" },
     { value: "geography", label: "Geography" },
     { value: "geological-sciences", label: "Geological Sciences" },
-    { value: "germanic-slavic", label: "Germanic and Slavic Languages and Literatures" },
+    {
+      value: "germanic-slavic",
+      label: "Germanic and Slavic Languages and Literatures",
+    },
     { value: "global-studies", label: "Global Studies" },
     { value: "health-policy", label: "Health Policy and Management" },
     { value: "history", label: "History" },
-    { value: "human-org-dev", label: "Human and Organizational Leadership Development" },
-    { value: "human-development", label: "Human Development and Family Science" },
+    {
+      value: "human-org-dev",
+      label: "Human and Organizational Leadership Development",
+    },
+    {
+      value: "human-development",
+      label: "Human Development and Family Science",
+    },
     { value: "information-science", label: "Information Science" },
     { value: "interdisciplinary-studies", label: "Interdisciplinary Studies" },
     { value: "latin-american-studies", label: "Latin American Studies" },
@@ -114,12 +130,11 @@ export default function SignUpPage() {
     { value: "statistics", label: "Statistics and Analytics" },
     { value: "studio-art", label: "Studio Art" },
     { value: "womens-gender-studies", label: "Women's and Gender Studies" },
-    { value: "undeclared", label: "Undeclared" }
+    { value: "undeclared", label: "Undeclared" },
   ];
 
-
   const filteredMajors = majors.filter((major) =>
-    major.label.toLowerCase().includes(majorSearch.toLowerCase())
+    major.label.toLowerCase().includes(majorSearch.toLowerCase()),
   );
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -152,7 +167,10 @@ export default function SignUpPage() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-2">
-              <a href="#" className="flex flex-col items-center gap-2 font-medium">
+              <a
+                href="#"
+                className="flex flex-col items-center gap-2 font-medium"
+              >
                 <div className="flex w-40 items-center justify-center rounded-md pb-5">
                   <img
                     src="https://kzyyqceiufmftdesrefz.supabase.co/storage/v1/object/public/public-images//logo.png"
