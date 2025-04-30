@@ -8,7 +8,7 @@
 ![Tailwind](https://img.shields.io/badge/-Tailwind-05122A?style=flat&logo=tailwindcss)
 ![Supabase](https://img.shields.io/badge/-Supabase-05122A?style=flat&logo=supabase)
 
-![StudyHub Logo](<img width="1491" alt="Screenshot 2025-04-30 at 12 02 11 AM" src="https://github.com/user-attachments/assets/933d634d-de38-4239-b4e8-878a8dd34817" />)
+![StudyHub Logo](https://github.com/user-attachments/assets/ab385939-4af9-4ff9-b5ea-c2f305dce484)
 
 Welcome,  
  To the new frontier of learning.
@@ -18,7 +18,8 @@ Welcome,
 
 StudyHub is a web-app dedicated to students and educators alike. It serves as a centralized platform for users to share and expand their ideas. Whenever, wherever, or whatever it may be, StudyHub strives to make learning a better experience for all.
 
- <img width="1800" alt="message 2 sent" src="https://github.com/user-attachments/assets/44609564-8940-4f02-b9d6-cc2c54e84a07" />
+ <img width="1491" alt="Screenshot 2025-04-30 at 12 02 11 AM" src="https://github.com/user-attachments/assets/08259ba9-64e6-43cd-96b8-9b724494ef6a" />
+
  
  ---
  
