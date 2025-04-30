@@ -19,6 +19,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
+import { Button } from "../ui/button";
 
 type StudyRoomHeaderProps = {
   user: User;
@@ -47,11 +48,11 @@ export default function StudyRoomHeader({
         open={dropdownOpen}
         onOpenChange={(isOpen) => setDropdownOpen(isOpen)}
       >
-        <DropdownMenuTrigger
-          className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          asChild
-        >
-          <div className="flex flex-row w-[240px] items-center justify-between h-full border-r p-3">
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="flex flex-row w-[240px] items-center justify-between h-full border-r p-3"
+          >
             <div className="flex flex-row items-center h-full gap-2">
               <UsersRound className="size-5 text-muted-foreground" />
               <p className="font-bold truncate w-[70px]">
@@ -59,7 +60,7 @@ export default function StudyRoomHeader({
               </p>
             </div>
             <ChevronDown className="size-4" />
-          </div>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
