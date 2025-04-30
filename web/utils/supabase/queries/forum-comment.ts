@@ -10,7 +10,7 @@ export const getForumComments = async (
     .from("forum_comment")
     .select("*")
     .eq("post_id", postId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return z.array(ForumCommentSchema).parse(data);
 };
