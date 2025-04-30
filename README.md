@@ -8,10 +8,11 @@
 ![Tailwind](https://img.shields.io/badge/-Tailwind-05122A?style=flat&logo=tailwindcss)
 ![Supabase](https://img.shields.io/badge/-Supabase-05122A?style=flat&logo=supabase)
 
-![StudyHub Logo](https://github.com/user-attachments/assets/ab385939-4af9-4ff9-b5ea-c2f305dce484)
+![StudyHub Logo](<img width="1491" alt="Screenshot 2025-04-30 at 12 02 11 AM" src="https://github.com/user-attachments/assets/933d634d-de38-4239-b4e8-878a8dd34817" />)
 
 Welcome,  
  To the new frontier of learning.
+
 
 ---
 
