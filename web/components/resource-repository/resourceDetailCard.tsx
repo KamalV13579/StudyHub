@@ -13,6 +13,11 @@ import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
+interface ResourceVotePayload {
+  resource_id: string;
+  profile_id?: string;
+  value?: number;
+}
 type ResourceDetailCardProps = {
   resource: {
     id: string;
@@ -100,8 +105,8 @@ export function ResourceDetailCard({
           table: "resource_vote",
         },
         (payload) => {
-          const newId = (payload.new as any)?.resource_id;
-          const oldId = (payload.old as any)?.resource_id;
+          const newId = (payload.new as ResourceVotePayload)?.resource_id;
+          const oldId = (payload.old as ResourceVotePayload)?.resource_id;
           if (newId === resource.id || oldId === resource.id) {
             refetchVoteCount();
           }
