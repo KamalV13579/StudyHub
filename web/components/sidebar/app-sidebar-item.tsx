@@ -27,7 +27,7 @@ export default function CourseSidebarItem({
         "flex flex-row items-center hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:rounded-lg gap-2 px-2 text-base leading-tight whitespace-nowrap text-muted-foreground cursor-pointer",
         course.id === selectedCourseId || isHovering
           ? "bg-sidebar-accent text-sidebar-accent-foreground rounded-lg"
-          : ""
+          : "",
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -35,11 +35,7 @@ export default function CourseSidebarItem({
     >
       <Book className="size-4" /> {course.course_code}
       <div className="ml-auto">
-        <CourseOptions
-          course={course}
-          hovering={isHovering}
-          user={user}
-        />
+        <CourseOptions course={course} hovering={isHovering} user={user} />
       </div>
     </div>
   );

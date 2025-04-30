@@ -75,7 +75,7 @@ export function CourseSidebar({
         supabase,
         newStudyRoomText,
         course.id,
-        user.id
+        user.id,
       );
       toast("Study room created.");
       queryClient.refetchQueries({
@@ -99,7 +99,7 @@ export function CourseSidebar({
         supabase,
         joinStudyRoomText,
         course.id,
-        user.id
+        user.id,
       );
       await broadcastUserChange(supabase);
       if (joinedStudyRoom.alreadyJoined) {
@@ -122,7 +122,7 @@ export function CourseSidebar({
   const handleOpenResourceRepository = async () => {
     if (resourceRepository?.id) {
       router.push(
-        `/course/${course.id}/resource-repository/${resourceRepository.id}`
+        `/course/${course.id}/resource-repository/${resourceRepository.id}`,
       );
     } else {
       toast.error("Resource repository not found");
@@ -132,7 +132,7 @@ export function CourseSidebar({
   const handleOpenForumRepository = () => {
     if (forumRepository?.id) {
       router.push(
-        `/course/${course.id}/forum-repository/${forumRepository.id}`
+        `/course/${course.id}/forum-repository/${forumRepository.id}`,
       );
     } else {
       toast.error("Forum repository not found");

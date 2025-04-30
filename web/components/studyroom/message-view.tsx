@@ -105,7 +105,7 @@ export default function MessageView({
                     size="icon"
                     className={cn(
                       "bg-accent border-sidebar hover:bg-background",
-                      isHovering ? "visible" : "invisible"
+                      isHovering ? "visible" : "invisible",
                     )}
                   >
                     <X />

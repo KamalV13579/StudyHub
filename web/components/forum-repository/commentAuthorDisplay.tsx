@@ -3,8 +3,20 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { getOrUpsertForumMembershipAnonymousStatus } from "@/utils/supabase/queries/forum-membership";
 import { Badge } from "@/components/ui/badge";
 
-export const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, originalPostAuthorId }: { supabase: SupabaseClient, authorId: string, forumId: string, createdAt: string, originalPostAuthorId: string }) => {
-  const [displayName, setDisplayName] = useState<string>('Loading...');
+export const CommentAuthorDisplay = ({
+  supabase,
+  authorId,
+  forumId,
+  createdAt,
+  originalPostAuthorId,
+}: {
+  supabase: SupabaseClient;
+  authorId: string;
+  forumId: string;
+  createdAt: string;
+  originalPostAuthorId: string;
+}) => {
+  const [displayName, setDisplayName] = useState<string>("Loading...");
   const [isLoading, setIsLoading] = useState(true);
   const isOriginalPoster = authorId === originalPostAuthorId;
 
@@ -13,21 +25,28 @@ export const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, o
     const fetchAuthorDetails = async () => {
       setIsLoading(true);
       try {
-        const isAnonymous = await getOrUpsertForumMembershipAnonymousStatus(supabase, forumId, authorId);
+        const isAnonymous = await getOrUpsertForumMembershipAnonymousStatus(
+          supabase,
+          forumId,
+          authorId,
+        );
 
         if (isMounted) {
           if (isAnonymous) {
-            setDisplayName('Anonymous');
+            setDisplayName("Anonymous");
           } else {
             const { data: profile, error } = await supabase
-              .from('profile')
-              .select('name')
-              .eq('id', authorId)
+              .from("profile")
+              .select("name")
+              .eq("id", authorId)
               .single();
 
             if (error || !profile) {
-              console.error("Error fetching profile or profile not found:", error);
-              setDisplayName('Unknown User');
+              console.error(
+                "Error fetching profile or profile not found:",
+                error,
+              );
+              setDisplayName("Unknown User");
             } else {
               setDisplayName(profile.name);
             }
@@ -36,7 +55,7 @@ export const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, o
       } catch (error) {
         if (isMounted) {
           console.error("Error in fetchAuthorDetails:", error);
-          setDisplayName('Unknown User');
+          setDisplayName("Unknown User");
         }
       } finally {
         if (isMounted) {
@@ -46,10 +65,10 @@ export const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, o
     };
 
     if (authorId && forumId) {
-        fetchAuthorDetails();
+      fetchAuthorDetails();
     } else {
-        setDisplayName('Unknown User');
-        setIsLoading(false);
+      setDisplayName("Unknown User");
+      setIsLoading(false);
     }
 
     return () => {
@@ -59,9 +78,13 @@ export const CommentAuthorDisplay = ({ supabase, authorId, forumId, createdAt, o
 
   return (
     <>
-      Posted by {isLoading ? 'Loading...' : displayName}
-      {isOriginalPoster && !isLoading && <Badge variant="secondary" className="ml-2">OP</Badge>}
-      {' '}on {new Date(createdAt).toLocaleString()}
+      Posted by {isLoading ? "Loading..." : displayName}
+      {isOriginalPoster && !isLoading && (
+        <Badge variant="secondary" className="ml-2">
+          OP
+        </Badge>
+      )}{" "}
+      on {new Date(createdAt).toLocaleString()}
     </>
   );
 };

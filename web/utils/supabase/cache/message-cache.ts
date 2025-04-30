@@ -25,7 +25,7 @@ export const addMessageToCacheFn =
     queryUtils: QueryClient,
     studyRoomId: string | string[] | undefined,
     members: z.infer<typeof Profile>[] | undefined,
-    supabase: SupabaseClient
+    supabase: SupabaseClient,
   ) =>
   async (newMessage: z.infer<typeof DraftMessage>) => {
     // First try to find the user in the already loaded members
@@ -37,7 +37,7 @@ export const addMessageToCacheFn =
         // Fetch the member profile directly from the database
         const profileData = await fetchMemberById(
           supabase,
-          newMessage.author_id
+          newMessage.author_id,
         );
 
         if (profileData) {
@@ -47,7 +47,7 @@ export const addMessageToCacheFn =
           if (members) {
             queryUtils.setQueryData(
               ["members", studyRoomId],
-              [...members, profileData]
+              [...members, profileData],
             );
           }
         }
@@ -76,10 +76,10 @@ export const addMessageToCacheFn =
           pages: oldData.pages.map((page, index) =>
             index === 0
               ? [Message.parse({ author, ...newMessage }), ...page]
-              : page
+              : page,
           ),
         };
-      }
+      },
     );
   };
 
@@ -88,12 +88,12 @@ export const updateMessageInCacheFn =
     queryUtils: QueryClient,
     studyRoomId: string | string[] | undefined,
     members: z.infer<typeof Profile>[] | undefined,
-    supabase: SupabaseClient
+    supabase: SupabaseClient,
   ) =>
   async (updatedMessage: z.infer<typeof DraftMessage>) => {
     // First try to find the user in the already loaded members
     let user = members?.find(
-      (member) => member.id === updatedMessage.author_id
+      (member) => member.id === updatedMessage.author_id,
     );
 
     // If user not found in current members and we have supabase instance
@@ -102,7 +102,7 @@ export const updateMessageInCacheFn =
         // Fetch the member profile directly from the database
         const profileData = await fetchMemberById(
           supabase,
-          updatedMessage.author_id
+          updatedMessage.author_id,
         );
 
         if (profileData) {
@@ -112,7 +112,7 @@ export const updateMessageInCacheFn =
           if (members) {
             queryUtils.setQueryData(
               ["members", studyRoomId],
-              [...members, profileData]
+              [...members, profileData],
             );
           }
         }
@@ -142,11 +142,11 @@ export const updateMessageInCacheFn =
             page.map((message) =>
               message.id === updatedMessage.id
                 ? Message.parse({ author, ...updatedMessage })
-                : message
-            )
+                : message,
+            ),
           ),
         };
-      }
+      },
     );
   };
 
@@ -164,7 +164,7 @@ export const deleteMessageFromCacheFn =
         return {
           pageParams: oldData.pageParams,
           pages: oldData.pages.map((page) =>
-            page.filter((m) => m.id !== messageId)
+            page.filter((m) => m.id !== messageId),
           ),
         };
       });

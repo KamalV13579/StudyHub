@@ -41,7 +41,11 @@ type CourseOptionsProps = {
   user: User;
 };
 
-export default function CourseOptions({ hovering, course, user }: CourseOptionsProps) {
+export default function CourseOptions({
+  hovering,
+  course,
+  user,
+}: CourseOptionsProps) {
   const queryUtils = useQueryClient();
   const supabase = useSupabase();
 
@@ -88,15 +92,16 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
       queryUtils.refetchQueries({ queryKey: ["courses"] });
       const courses = await getCourses(supabase, user.id);
       if (!courses || courses.length === 0) {
-        router.push(`/`)
+        router.push(`/`);
       } else {
         router.push(`/course/${courses[0].id}`);
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast(`Error deleting course: ${errorMessage}`);
     }
-  }
+  };
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -159,10 +164,7 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
               >
                 Cancel
               </AlertDialogCancel>
-              <Button
-                onClick={handleDeleteCourse}
-                variant="destructive"
-              >
+              <Button onClick={handleDeleteCourse} variant="destructive">
                 Delete
               </Button>
             </AlertDialogFooter>
@@ -172,4 +174,3 @@ export default function CourseOptions({ hovering, course, user }: CourseOptionsP
     </DropdownMenu>
   );
 }
-

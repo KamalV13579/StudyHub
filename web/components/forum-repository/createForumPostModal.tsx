@@ -5,7 +5,14 @@ import { User } from "@supabase/supabase-js";
 import { createForum } from "@/utils/supabase/queries/forum";
 import { createForumPost } from "@/utils/supabase/queries/forum-post";
 import { upsertForumMembership } from "@/utils/supabase/queries/forum-membership";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -21,7 +28,13 @@ type CreateForumPostModalProps = {
   courseId: string;
 };
 
-export function CreateForumPostModal({ open, setOpen, user, repositoryId, courseId }: CreateForumPostModalProps) {
+export function CreateForumPostModal({
+  open,
+  setOpen,
+  user,
+  repositoryId,
+  courseId,
+}: CreateForumPostModalProps) {
   const supabase = useSupabase();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
@@ -44,30 +57,41 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
       const forum = await createForum(supabase, courseId, repositoryId, title);
 
       if (attachment) {
-        const fileExt = attachment.name.split('.').pop();
+        const fileExt = attachment.name.split(".").pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
         const filePath = `public/${forum.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('forum-attachments')
+          .from("forum-attachments")
           .upload(filePath, attachment);
 
         if (uploadError) {
-          throw new Error(`Failed to upload attachment: ${uploadError.message}`);
+          throw new Error(
+            `Failed to upload attachment: ${uploadError.message}`,
+          );
         }
 
         const { data: urlData } = supabase.storage
-          .from('forum-attachments')
+          .from("forum-attachments")
           .getPublicUrl(filePath);
 
         if (!urlData?.publicUrl) {
-            console.warn("Could not get public URL for uploaded file, but upload succeeded.");
+          console.warn(
+            "Could not get public URL for uploaded file, but upload succeeded.",
+          );
         } else {
-             attachmentUrl = urlData.publicUrl;
+          attachmentUrl = urlData.publicUrl;
         }
       }
 
-      await createForumPost(supabase, forum.id, user.id, title, content, attachmentUrl);
+      await createForumPost(
+        supabase,
+        forum.id,
+        user.id,
+        title,
+        content,
+        attachmentUrl,
+      );
       await upsertForumMembership(supabase, forum.id, user.id, isAnonymous);
 
       toast.success("Forum post created successfully!");
@@ -75,14 +99,20 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
       setContent("");
       setIsAnonymous(false);
       setAttachment(null);
-      const fileInput = document.getElementById('attachments-modal') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      const fileInput = document.getElementById(
+        "attachments-modal",
+      ) as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
 
-      await queryClient.invalidateQueries({ queryKey: ["forumPosts", repositoryId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["forumPosts", repositoryId],
+      });
       setOpen(false);
     } catch (err) {
       console.error("Error creating post:", err);
-      toast.error(`Failed to create post: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(
+        `Failed to create post: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -94,7 +124,8 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>
           <DialogDescription>
-            Fill in the details for your new forum post. Click submit when you are done.
+            Fill in the details for your new forum post. Click submit when you
+            are done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -122,35 +153,51 @@ export function CreateForumPostModal({ open, setOpen, user, repositoryId, course
                 disabled={submitting}
               />
             </div>
-             <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Switch
                 id="anonymous-switch-modal"
                 checked={isAnonymous}
                 onCheckedChange={setIsAnonymous}
                 disabled={submitting}
               />
-               <Label htmlFor="anonymous-switch-modal" className="cursor-pointer">
+              <Label
+                htmlFor="anonymous-switch-modal"
+                className="cursor-pointer"
+              >
                 Post Anonymously
               </Label>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="attachments-modal">
-                Attachment <span className="text-xs text-muted-foreground">(Optional)</span>
+                Attachment{" "}
+                <span className="text-xs text-muted-foreground">
+                  (Optional)
+                </span>
               </Label>
               <Input
                 id="attachments-modal"
                 type="file"
-                onChange={(e) => setAttachment(e.target.files ? e.target.files[0] : null)}
+                onChange={(e) =>
+                  setAttachment(e.target.files ? e.target.files[0] : null)
+                }
                 disabled={submitting}
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80 cursor-pointer text-center"
               />
             </div>
           </div>
           <DialogFooter className="gap-2 sm:justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting || !title.trim() || !content.trim()}>
+            <Button
+              type="submit"
+              disabled={submitting || !title.trim() || !content.trim()}
+            >
               {submitting ? "Posting…" : "Submit Post"}
             </Button>
           </DialogFooter>

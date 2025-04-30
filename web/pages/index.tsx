@@ -10,7 +10,7 @@ import { useEffect } from "react";
 
 type HomeProps = {
   user: User;
-}
+};
 
 export default function Home({ user }: HomeProps) {
   const supabase = createSupabaseComponentClient();
@@ -23,7 +23,6 @@ export default function Home({ user }: HomeProps) {
   useEffect(() => {
     if (courses && courses[0]) {
       router.push(`/course/${courses[0].id}`);
-
     }
   }, [router, courses]);
 
@@ -38,9 +37,7 @@ export default function Home({ user }: HomeProps) {
       <p className="font-bold text-lg p-6">Welcome!</p>
       <div className="flex flex-row gap-3 px-6 pt-15">
         <ArrowBigLeftDash />
-        <p className="font-bold">
-          Join a course on the sidebar here.
-        </p>
+        <p className="font-bold">Join a course on the sidebar here.</p>
       </div>
     </div>
   );

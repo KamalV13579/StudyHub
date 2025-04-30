@@ -7,7 +7,7 @@ import { Profile } from "../models/profile";
 export const getStudyRooms = async (
   supabase: SupabaseClient,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<z.infer<typeof StudyRoom>[]> => {
   // Fetch study room membership entries for the current user.
   const { data: membershipData, error: membershipError } = await supabase
@@ -17,12 +17,12 @@ export const getStudyRooms = async (
 
   if (membershipError || !membershipData) {
     throw new Error(
-      `Error fetching study room memberships: ${membershipError?.message}`
+      `Error fetching study room memberships: ${membershipError?.message}`,
     );
   }
 
   const studyRoomIds = membershipData.map(
-    (membership: { study_room_id: string }) => membership.study_room_id
+    (membership: { study_room_id: string }) => membership.study_room_id,
   );
 
   const { data: studyRooms, error: studyRoomError } = await supabase
@@ -46,7 +46,7 @@ export const joinStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<JoinedStudyRoom> => {
   // Look up the study room by its id.
   const { data: studyRoom, error: studyRoomError } = await supabase
@@ -76,7 +76,7 @@ export const joinStudyRoom = async (
   if (membershipQueryError) {
     console.error(
       "[joinStudyRoom] Error checking existing membership:",
-      membershipQueryError
+      membershipQueryError,
     );
   }
 
@@ -98,7 +98,7 @@ export const joinStudyRoom = async (
 
   if (membershipInsertError) {
     throw new Error(
-      `Error joining study room: ${membershipInsertError.message}`
+      `Error joining study room: ${membershipInsertError.message}`,
     );
   }
 
@@ -109,7 +109,7 @@ export const createStudyRoom = async (
   supabase: SupabaseClient,
   roomTitle: string,
   courseId: string,
-  userId: string
+  userId: string,
 ): Promise<z.infer<typeof StudyRoom>> => {
   // Insert a new study room record.
   const { data: studyRoom, error: roomError } = await supabase
@@ -141,7 +141,7 @@ export const createStudyRoom = async (
 
   if (membershipError) {
     throw new Error(
-      `Error adding study room membership: ${membershipError.message}`
+      `Error adding study room membership: ${membershipError.message}`,
     );
   }
 
@@ -150,7 +150,7 @@ export const createStudyRoom = async (
 
 export const getStudyRoom = async (
   supabase: SupabaseClient,
-  studyRoomId: string
+  studyRoomId: string,
 ): Promise<z.infer<typeof StudyRoom>> => {
   // Fetch study room with creator information
   const { data, error } = await supabase
@@ -161,7 +161,7 @@ export const getStudyRoom = async (
       creator:study_room_membership!inner(
         profile_id
       )
-    `
+    `,
     )
     .eq("id", studyRoomId)
     .eq("study_room_membership.is_owner", true)
@@ -182,7 +182,7 @@ export const getStudyRoom = async (
 
 export const getStudyRoomMembers = async (
   supabase: SupabaseClient,
-  studyRoomId: string
+  studyRoomId: string,
 ) => {
   const query = supabase
     .from("study_room_membership")
@@ -190,7 +190,7 @@ export const getStudyRoomMembers = async (
       `
         profile:profile!profile_id ( id, name, handle, avatar_url, major, created_at),
         is_owner
-      `
+      `,
     )
     .eq("study_room_id", studyRoomId);
 
@@ -198,7 +198,7 @@ export const getStudyRoomMembers = async (
 
   if (studyRoomMembersError) {
     throw new Error(
-      `Error feetching server members: ${studyRoomMembersError.message}`
+      `Error feetching server members: ${studyRoomMembersError.message}`,
     );
   }
 
@@ -214,7 +214,7 @@ export const getStudyRoomMembers = async (
 export const updateStudyRoomName = async (
   supabase: SupabaseClient,
   studyRoomId: string,
-  newName: string
+  newName: string,
 ): Promise<void> => {
   const { error } = await supabase
     .from("study_room")
@@ -228,7 +228,7 @@ export const updateStudyRoomName = async (
 
 export const deleteStudyRoom = async (
   supabase: SupabaseClient,
-  studyRoomId: string
+  studyRoomId: string,
 ): Promise<void> => {
   const { error } = await supabase
     .from("study_room")
@@ -243,7 +243,7 @@ export const deleteStudyRoom = async (
 export const leaveStudyRoom = async (
   supabase: SupabaseClient,
   studyRoomId: string,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   // Delete the row in the study_room_membership table for this user and studyRoomId.
   const { error: deleteError } = await supabase
@@ -261,7 +261,7 @@ export const leaveStudyRoom = async (
 export const getStudyRoomsByMembership = async (
   supabase: SupabaseClient,
   userId: string,
-  courseId: string
+  courseId: string,
 ): Promise<StudyRoom[]> => {
   const { data, error } = await supabase
     .from("study_room_membership")

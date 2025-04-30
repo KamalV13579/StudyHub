@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { SupabaseClient, User } from "@supabase/supabase-js";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ForumPost } from "@/utils/supabase/models/forum-post";
 import { PostAuthorDisplay } from "@/components/forum-repository/postAuthorDisplay";
@@ -19,9 +13,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Paperclip } from "lucide-react";
+import { Paperclip, Trash } from "lucide-react";
 import { useRouter } from "next/router";
 import { deleteForum } from "@/utils/supabase/queries/forum";
 import { getForumRepository } from "@/utils/supabase/queries/forum-repository";
@@ -45,7 +38,7 @@ export function ForumCardDetailed({
   const isAuthor = user.id === post.author_id;
   const isDeleted = post.title === "DELETED" && post.content === "DELETED";
 
-  const handleDelete = (event: React.MouseEvent) => {
+  const handleDelete = async (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     setDeleteDialogOpen(true);
@@ -78,51 +71,63 @@ export function ForumCardDetailed({
 
   return (
     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <Card className={`relative ${isDeleted ? "opacity-50" : ""}`}>
-        {isAuthor && !isDeleted && (
-          <DialogTrigger asChild>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="absolute top-2 right-2 z-10"
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          </DialogTrigger>
-        )}
-        <CardHeader>
-          <CardTitle>{isDeleted ? "DELETED" : post.title}</CardTitle>
-          <CardDescription>
-            {isDeleted ? (
-              "This post has been deleted."
-            ) : (
-              <PostAuthorDisplay
-                supabase={supabase}
-                forumId={post.forum_id}
-                authorId={post.author_id}
-                createdAt={post.created_at}
-              />
-            )}
-          </CardDescription>
-        </CardHeader>
+      <Card className={`w-full p-6 relative ${isDeleted ? "opacity-50" : ""}`}>
         {!isDeleted && (
-          <CardContent>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {post.content}
+          <div className="absolute top-4 right-4 text-xs text-muted-foreground">
+            <PostAuthorDisplay
+              supabase={supabase}
+              forumId={post.forum_id}
+              authorId={post.author_id}
+              createdAt={post.created_at}
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 mb-4">
+          <CardHeader className="p-0">
+            <CardTitle>{isDeleted ? "DELETED" : post.title}</CardTitle>
+          </CardHeader>
+          {!isDeleted && (
+            <CardContent className="p-0">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-2">
+                {post.content}
+              </p>
+            </CardContent>
+          )}
+          {isDeleted && (
+            <p className="text-sm text-muted-foreground mt-2">
+              This post has been deleted.
             </p>
-            {post.attachment_url && (
+          )}
+        </div>
+
+        {!isDeleted && (
+          <div className="flex items-center justify-between mt-6">
+            <div className="flex items-center gap-2">
+              {post.attachment_url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAttachmentClick}
+                >
+                  <Paperclip className="mr-2 h-4 w-4" />
+                  View Attachment
+                </Button>
+              )}
+            </div>
+
+            {isAuthor && (
               <Button
-                variant="outline"
+                variant="destructive"
                 size="sm"
-                className="mt-4"
-                onClick={handleAttachmentClick}
+                onClick={handleDelete}
+                className="flex items-center gap-2"
               >
-                <Paperclip className="mr-2 h-4 w-4" />
-                View Attachment
+                <Trash className="h-4 w-4" />
+                Delete
               </Button>
             )}
-          </CardContent>
+          </div>
         )}
       </Card>
       <DialogContent>

@@ -58,7 +58,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         supabase,
         courseCode,
         isInstructor,
-        user.id
+        user.id,
       );
       if (result.alreadyJoined) {
         toast("Course already joined.");

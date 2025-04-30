@@ -56,7 +56,7 @@ export default function StudyRoomSidebarItem({
         "flex flex-row items-center gap-2 px-2 text-base leading-tight whitespace-nowrap text-muted-foreground cursor-pointer select-none",
         currentStudyRoomId === studyRoom.id || isHovering
           ? "bg-sidebar-accent text-sidebar-accent-foreground rounded-lg cursor-pointer"
-          : ""
+          : "",
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}

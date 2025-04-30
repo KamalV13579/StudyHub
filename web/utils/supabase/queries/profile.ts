@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const getProfile = async (
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<z.infer<typeof Profile>> => {
   const { data: profile, error: profileError } = await supabase
     .from("profile")
@@ -21,7 +21,7 @@ export const getProfile = async (
 export const changeProfileDisplayName = async (
   supabase: SupabaseClient,
   newName: string,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   const { error: updateError } = await supabase
     .from("profile")
@@ -37,7 +37,7 @@ export const changeProfileDisplayName = async (
 export const changeProfileImage = async (
   supabase: SupabaseClient,
   file: File,
-  userId: string
+  userId: string,
 ): Promise<void> => {
   const { data: fileData, error: uploadError } = await supabase.storage
     .from("avatars")

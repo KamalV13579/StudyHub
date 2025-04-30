@@ -110,7 +110,7 @@ export default function StudyRoomPage({
       return await getPaginatedMessages(
         supabase,
         studyRoomId as string,
-        pageParam
+        pageParam,
       );
     },
     initialPageParam: 0,
@@ -134,7 +134,7 @@ export default function StudyRoomPage({
           supabase,
           studyRoomId as string,
           pageParam,
-          debouncedFilterQuery
+          debouncedFilterQuery,
         );
       },
       initialPageParam: 0,
@@ -159,9 +159,9 @@ export default function StudyRoomPage({
         queryUtils,
         studyRoomId,
         members,
-        supabase
+        supabase,
       )(newMessage),
-    [studyRoomId, members, queryUtils, supabase]
+    [studyRoomId, members, queryUtils, supabase],
   );
 
   const updateMessageInCache = useCallback(
@@ -170,15 +170,15 @@ export default function StudyRoomPage({
         queryUtils,
         studyRoomId,
         members,
-        supabase
+        supabase,
       )(updatedMessage),
-    [studyRoomId, members, queryUtils, supabase]
+    [studyRoomId, members, queryUtils, supabase],
   );
 
   const deleteMessageFromCache = useCallback(
     (messageId: string) =>
       deleteMessageFromCacheFn(queryUtils, studyRoomId)(messageId),
-    [studyRoomId, queryUtils]
+    [studyRoomId, queryUtils],
   );
 
   // Realtime for messages
@@ -208,7 +208,7 @@ export default function StudyRoomPage({
           if (newMessage.author_id !== user.id) {
             addMessageToCache(newMessage);
           }
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -229,7 +229,7 @@ export default function StudyRoomPage({
             study_room_id: studyRoomId as string,
           };
           updateMessageInCache(updatedMessage);
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -240,7 +240,7 @@ export default function StudyRoomPage({
         },
         (payload) => {
           deleteMessageFromCache(payload.old.id);
-        }
+        },
       )
       .subscribe();
 
@@ -266,7 +266,7 @@ export default function StudyRoomPage({
 
   const onUserLeave = useCallback((leavingUserIds: string[]) => {
     setOnlineUsers((prevUsers) =>
-      prevUsers.filter((user) => !leavingUserIds.includes(user))
+      prevUsers.filter((user) => !leavingUserIds.includes(user)),
     );
   }, []);
 
@@ -317,16 +317,16 @@ export default function StudyRoomPage({
         },
         (payload) => {
           const deletedId = payload.old.id;
-          
+
           if (deletedId === studyRoomId) {
             router.replace(`/course/${courseId}`);
           }
-          
+
           queryClient.setQueryData<StudyRoom[]>(
             ["studyRooms", courseId],
-            (rooms = []) => rooms.filter((r) => r.id !== deletedId)
+            (rooms = []) => rooms.filter((r) => r.id !== deletedId),
           );
-        }
+        },
       )
       .subscribe();
 
@@ -354,7 +354,7 @@ export default function StudyRoomPage({
         },
         () => {
           router.replace(`/course/${courseId}`);
-        }
+        },
       )
       .subscribe();
 
@@ -375,7 +375,7 @@ export default function StudyRoomPage({
     const typingUserNames = filteredUsers
       .slice(0, 3)
       .map(
-        (userId) => members?.find((m) => m.id === userId)?.name || "Someone"
+        (userId) => members?.find((m) => m.id === userId)?.name || "Someone",
       );
 
     if (filteredUsers.length > 3) return "Several people are typing...";
@@ -412,9 +412,9 @@ export default function StudyRoomPage({
         setTypingUsers((prevUsers) =>
           prevUsers.includes(typingUserId)
             ? prevUsers
-            : [...prevUsers, typingUserId]
+            : [...prevUsers, typingUserId],
         );
-      }
+      },
     );
 
     // Handle typing end events (IGNORE CURRENT USER)
@@ -426,9 +426,9 @@ export default function StudyRoomPage({
         if (typingUserId === user.id) return; // Ignore self
 
         setTypingUsers((prevUsers) =>
-          prevUsers.filter((userId) => userId !== typingUserId)
+          prevUsers.filter((userId) => userId !== typingUserId),
         );
-      }
+      },
     );
 
     typingChannel.subscribe();
@@ -550,7 +550,7 @@ export default function StudyRoomPage({
       updateMessageInCache,
       draftMessageText,
       user,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -600,7 +600,7 @@ export default function StudyRoomPage({
                     "flex flex-col grow",
                     !!selectedFile
                       ? "h-[calc(100vh-286px)]"
-                      : "h-[calc(100vh-238px)]"
+                      : "h-[calc(100vh-238px)]",
                   )}
                 >
                   {/* Note: The messages appear bottom-to-top because of `flex-col-reverse`.  */}
@@ -722,7 +722,7 @@ export default function StudyRoomPage({
                           setSelectedFile(
                             (e.target.files ?? []).length > 0
                               ? e.target.files![0]
-                              : null
+                              : null,
                           );
                           messageTextAreaRef.current?.focus();
                         }}
@@ -778,7 +778,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     studyRooms = await getStudyRoomsByMembership(
       supabase,
       userData.user.id,
-      courseId
+      courseId,
     );
   } catch (error) {
     toast(`Error fetching study rooms: ${error}`);

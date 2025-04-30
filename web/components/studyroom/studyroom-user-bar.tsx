@@ -68,11 +68,11 @@ export function StudyRoomUserSidebar({
   const isTutor = (userId: string) => tutorStatusMap.get(userId) || false;
 
   const onlineUsers = studyRoomMembers.filter(
-    (member) => userId === member.id || onlineUserIds.includes(member.id)
+    (member) => userId === member.id || onlineUserIds.includes(member.id),
   );
 
   const offlineUsers = studyRoomMembers.filter(
-    (member) => !(userId === member.id) && !onlineUserIds.includes(member.id)
+    (member) => !(userId === member.id) && !onlineUserIds.includes(member.id),
   );
 
   return (

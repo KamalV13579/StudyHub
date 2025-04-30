@@ -8,7 +8,7 @@ export const getPaginatedMessages = async (
   supabase: SupabaseClient,
   studyRoomId: string,
   cursor: number,
-  textSearch?: string
+  textSearch?: string,
 ): Promise<z.infer<typeof Message>[]> => {
   const query = supabase
     .from("study_room_message")
@@ -19,7 +19,7 @@ export const getPaginatedMessages = async (
       created_at,
       attachment_url,
       author:profile!author_id ( id, name, handle, avatar_url, major )
-    `
+    `,
     )
     .eq("study_room_id", studyRoomId)
     .order("created_at", { ascending: false })
@@ -46,7 +46,7 @@ export const getPaginatedMessages = async (
 export const sendMessage = async (
   supabase: SupabaseClient,
   draftMessage: z.infer<typeof DraftMessage>,
-  file: File | null
+  file: File | null,
 ) => {
   const { data: message, error } = await supabase
     .from("study_room_message")
@@ -59,7 +59,7 @@ export const sendMessage = async (
         attachment_url,
         author_id,
         study_room_id
-        `
+        `,
     )
     .single();
 
@@ -93,7 +93,7 @@ export const sendMessage = async (
             attachment_url,
             author_id,
             study_room_id
-            `
+            `,
         )
         .single();
 
@@ -108,7 +108,7 @@ export const sendMessage = async (
 
 export const deleteMessage = async (
   supabase: SupabaseClient,
-  messageId: string
+  messageId: string,
 ) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData) throw Error("Error loading current user.");

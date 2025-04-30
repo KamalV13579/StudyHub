@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const getForumRepository = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
 ): Promise<z.infer<typeof ForumRepository>> => {
   const { data: forumRepository, error: forumRepositoryError } = await supabase
     .from("forum_repository")

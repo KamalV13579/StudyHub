@@ -5,7 +5,7 @@ import { Resource } from "@/utils/supabase/models/resource";
 
 export const getResourceRepository = async (
   supabase: SupabaseClient,
-  courseId: string
+  courseId: string,
 ): Promise<z.infer<typeof ResourceRepository>> => {
   const { data: resourceRepository, error: resourceRepositoryError } =
     await supabase
@@ -16,7 +16,7 @@ export const getResourceRepository = async (
 
   if (resourceRepositoryError || !resourceRepository) {
     throw new Error(
-      `Error fetching profile: ${resourceRepositoryError?.message}`
+      `Error fetching profile: ${resourceRepositoryError?.message}`,
     );
   }
   return ResourceRepository.parse(resourceRepository);
@@ -24,7 +24,7 @@ export const getResourceRepository = async (
 
 export const getResourceRepositoryById = async (
   supabase: SupabaseClient,
-  repositoryId: string
+  repositoryId: string,
 ): Promise<z.infer<typeof ResourceRepository>> => {
   const { data, error } = await supabase
     .from("resource_repository")
@@ -41,7 +41,7 @@ export const getResourceRepositoryById = async (
 
 export const getResourcesForRepository = async (
   supabase: SupabaseClient,
-  repositoryId: string
+  repositoryId: string,
 ): Promise<z.infer<typeof Resource>[]> => {
   const { data, error } = await supabase
     .from("resource")
@@ -58,7 +58,7 @@ export const getResourcesForRepository = async (
     profiles:uploaded_by (
       handle
     )
-  `
+  `,
     )
     .eq("repository_id", repositoryId)
     .order("created_at", { ascending: false });
@@ -76,7 +76,7 @@ export const getResourcesForRepository = async (
 
 export const getResourceDetail = async (
   supabase: SupabaseClient,
-  resourceId: string
+  resourceId: string,
 ): Promise<z.infer<typeof Resource>> => {
   const { data, error } = await supabase
     .from("resource")
@@ -93,7 +93,7 @@ export const getResourceDetail = async (
     profiles:uploaded_by (
       handle
     )
-  `
+  `,
     )
     .eq("id", resourceId);
 
@@ -114,7 +114,7 @@ export const getResourceDetail = async (
 export const uploadResourceFile = async (
   supabase: SupabaseClient,
   file: File,
-  resourceId: string
+  resourceId: string,
 ): Promise<string> => {
   const filePath = `${resourceId}/${file.name}`;
 
@@ -137,7 +137,7 @@ export const createResourceEntry = async (
     repository_id: string;
     file_url: string;
     type: string;
-  }
+  },
 ) => {
   const { error } = await supabase.from("resource").insert([resourceData]);
 
@@ -148,7 +148,7 @@ export const handleResourceVote = async (
   supabase: SupabaseClient,
   resourceId: string,
   profileId: string,
-  voteValue: 1 | -1
+  voteValue: 1 | -1,
 ) => {
   const { data: existingVote, error: fetchError } = await supabase
     .from("resource_vote")
@@ -174,7 +174,15 @@ export const handleResourceVote = async (
       throw new Error(insertError.message);
     }
   } else if (existingVote[0].vote === voteValue) {
-    // Same vote exists, delete to "unvote"
+    // this update is a work around to have it to the realtime works on deletes
+    const { error: updateError } = await supabase
+      .from("resource_vote")
+      .update({ vote: 0 })
+      .eq("id", existingVote[0].id);
+    if (updateError) {
+      console.log("update error");
+      throw new Error(updateError.message);
+    }
     const { error: deleteError } = await supabase
       .from("resource_vote")
       .delete()
@@ -184,7 +192,6 @@ export const handleResourceVote = async (
       throw new Error(deleteError.message);
     }
   } else {
-    // Different vote exists, update it
     const { error: updateError } = await supabase
       .from("resource_vote")
       .update({ vote: voteValue })
@@ -198,7 +205,7 @@ export const handleResourceVote = async (
 
 export const getResourceVoteCount = async (
   supabase: SupabaseClient,
-  resourceId: string
+  resourceId: string,
 ): Promise<number> => {
   const { data, error } = await supabase
     .from("resource_vote")
@@ -209,7 +216,39 @@ export const getResourceVoteCount = async (
 
   if (!data) return 0;
 
-  // Sum all votes (votes can be +1 or -1)
   const total = data.reduce((sum, v) => sum + (v.vote ?? 0), 0);
   return total;
+};
+
+export const getUserResourceVote = async (
+  supabase: SupabaseClient,
+  resourceId: string,
+  profileId: string,
+): Promise<1 | -1 | null> => {
+  const { data, error } = await supabase
+    .from("resource_vote")
+    .select("vote")
+    .eq("resource_id", resourceId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(error.message);
+  }
+
+  return data?.vote ?? null;
+};
+
+export const deleteResource = async (
+  supabase: SupabaseClient,
+  resourceId: string,
+) => {
+  const { error } = await supabase
+    .from("resource")
+    .delete()
+    .eq("id", resourceId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 };
