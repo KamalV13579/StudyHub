@@ -98,11 +98,11 @@ export function ResourceCard({ resource, user }: ResourceCardProps) {
         (payload) => {
           console.log("Vote change detected!", payload);
 
-          const newResourceId = (payload.new as any)?.resource_id;
-          const oldResourceId = (payload.old as any)?.resource_id;
+          const newResourceId = (payload.new as { resource_id?: string } | null)?.resource_id;
+          const oldResourceId = (payload.old as { resource_id?: string } | null)?.resource_id;
 
           if (newResourceId === resource.id || oldResourceId === resource.id) {
-            refetchVoteCount(); // ✅ Only refetch if it's related to this resource
+            refetchVoteCount(); 
           }
         },
       )
