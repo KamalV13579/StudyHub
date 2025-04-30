@@ -73,14 +73,12 @@ export function CreateResourceModal({
 
       toast.success("Resource created successfully!");
 
-      // Reset form
       setTitle("");
       setDescription("");
       setFile(null);
       setType("");
       setOpen(false);
 
-      // Refresh the resources
       queryClient.invalidateQueries({ queryKey: ["resources", repositoryId] });
     } catch (error: unknown) {
       console.error(error);
