@@ -18,8 +18,6 @@ Welcome,
 
 StudyHub is a web-app dedicated to students and educators alike. It serves as a centralized platform for users to share and expand their ideas. Whenever, wherever, or whatever it may be, StudyHub strives to make learning a better experience for all.
 
- <img width="1491" alt="Screenshot 2025-04-30 at 12 02 11 AM" src="https://github.com/user-attachments/assets/08259ba9-64e6-43cd-96b8-9b724494ef6a" />
-
  
  ---
  
